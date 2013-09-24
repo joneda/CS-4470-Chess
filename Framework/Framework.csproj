@@ -1,0 +1,243 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{BE8F4EFB-458E-431A-A763-5988804DC0ED}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>UvsChess</RootNamespace>
+    <AssemblyName>UvsChess</AssemblyName>
+    <StartupObject>UvsChess.Framework.Program</StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>./bin/Debug/</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>UvsChess</AssemblyName>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>./bin/Debug/</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>UvsChess</AssemblyName>
+    <DebugSymbols>True</DebugSymbols>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ChessColor.cs" />
+    <Compile Include="ChessPiece.cs" />
+    <Compile Include="Framework\AI.cs" />
+    <Compile Include="Framework\ChessState.cs" />
+    <Compile Include="Framework\ChessGame.cs" />
+    <Compile Include="AIProfiler.cs" />
+    <Compile Include="Framework\Profiler.cs" />
+    <Compile Include="Framework\ProfilerMethodKey.cs" />
+    <Compile Include="Gui\AboutUvsChess.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Gui\AboutUvsChess.Designer.cs">
+      <DependentUpon>AboutUvsChess.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ChessBoard.cs" />
+    <Compile Include="Framework\DllLoader.cs" />
+    <Compile Include="Framework\ChessPlayer.cs" />
+    <Compile Include="Gui\GuiChessBoard.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Gui\GuiChessBoard.Designer.cs">
+      <DependentUpon>GuiChessBoard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DecisionTree.cs" />
+    <Compile Include="ChessLocation.cs" />
+    <Compile Include="ChessMove.cs" />
+    <Compile Include="Gui\GuiDecisionTree.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Gui\GuiDecisionTree.Designer.cs">
+      <DependentUpon>GuiDecisionTree.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Gui\GuiEvent.cs" />
+    <Compile Include="Gui\GuiEventLoop.cs" />
+    <Compile Include="Gui\MessageBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Gui\MessageBox.Designer.cs">
+      <DependentUpon>MessageBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Gui\Preferences.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Gui\Preferences.Designer.cs">
+      <DependentUpon>Preferences.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IChessAI.cs" />
+    <Compile Include="Framework\Logger.cs" />
+    <Compile Include="Framework\Program.cs" />
+    <Compile Include="ChessFlag.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Gui\WinGui.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Gui\WinGui.Designer.cs">
+      <DependentUpon>WinGui.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\ChessPiece_BlackBishop.png" />
+    <EmbeddedResource Include="Images\ChessPiece_BlackKing.png" />
+    <EmbeddedResource Include="Images\ChessPiece_BlackKnight.png" />
+    <EmbeddedResource Include="Images\ChessPiece_BlackPawn.png" />
+    <EmbeddedResource Include="Images\ChessPiece_BlackQueen.png" />
+    <EmbeddedResource Include="Images\ChessPiece_BlackRook.png" />
+    <EmbeddedResource Include="Images\ChessPiece_WhiteBishop.png" />
+    <EmbeddedResource Include="Images\ChessPiece_WhiteKing.png" />
+    <EmbeddedResource Include="Images\ChessPiece_WhiteKnight.png" />
+    <EmbeddedResource Include="Images\ChessPiece_WhitePawn.png" />
+    <EmbeddedResource Include="Images\ChessPiece_WhiteQueen.png" />
+    <EmbeddedResource Include="Images\ChessPiece_WhiteRook.png" />
+    <EmbeddedResource Include="Images\Chess_DarkBackground.png" />
+    <EmbeddedResource Include="Images\Chess_LightBackground.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\Empty_1x1_Mouse_Cursor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Gui\GuiChessBoard.resx">
+      <DependentUpon>GuiChessBoard.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Gui\WinGui.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>WinGui.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\Horizontal_Border_0.png" />
+    <EmbeddedResource Include="Images\Horizontal_Border_1.png" />
+    <EmbeddedResource Include="Images\Horizontal_Border_2.png" />
+    <EmbeddedResource Include="Images\Horizontal_Border_3.png" />
+    <EmbeddedResource Include="Images\Horizontal_Border_4.png" />
+    <EmbeddedResource Include="Images\Horizontal_Border_5.png" />
+    <EmbeddedResource Include="Images\Horizontal_Border_6.png" />
+    <EmbeddedResource Include="Images\Horizontal_Border_7.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_0.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_1.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_2.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_3.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_4.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_5.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_6.png" />
+    <EmbeddedResource Include="Images\Vertical_Border_7.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Gui\AboutUvsChess.resx">
+      <DependentUpon>AboutUvsChess.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Gui\Preferences.resx">
+      <DependentUpon>Preferences.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Images\Corner_Border.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Gui\GuiDecisionTree.resx">
+      <DependentUpon>GuiDecisionTree.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Gui\MessageBox.resx">
+      <DependentUpon>MessageBox.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Images\Chess_HighlightMove01.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove02.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove03.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove04.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove05.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove06.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove07.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove08.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove09.png" />
+    <EmbeddedResource Include="Images\Chess_HighlightMove10.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+    <PreBuildEvent>if not "$(SolutionName)" == "RuntAI" copy "$(ProjectDir)..\RuntAI\*.*" "$(TargetDir)"</PreBuildEvent>
+  </PropertyGroup>
+</Project>
