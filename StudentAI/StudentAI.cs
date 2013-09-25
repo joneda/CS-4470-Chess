@@ -42,7 +42,23 @@ namespace StudentAI
         /// <returns>Returns true if the move was valid</returns>
         public bool IsValidMove(ChessBoard boardBeforeMove, ChessMove moveToCheck, ChessColor colorOfPlayerMoving)
         {
-            throw (new NotImplementedException());
+            //If statlemate, siganl valid move
+            if (moveToCheck.Flag == ChessFlag.Stalemate)
+            {
+                return true;
+            }
+
+            //Check to see if they moved a peice of their color then pass the validation on to the ValidMove class
+            ChessPiece movedPiece = boardBeforeMove[moveToCheck.From];
+            if (colorOfPlayerMoving == ChessColor.Black && movedPiece < ChessPiece.Empty)
+            {
+                return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
+            }
+            if (colorOfPlayerMoving == ChessColor.White && movedPiece > ChessPiece.Empty)
+            {
+                return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
+            }
+            return false;
         }
 
         #endregion

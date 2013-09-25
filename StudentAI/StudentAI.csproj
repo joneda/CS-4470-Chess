@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="StudentAI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ValidatMove.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Framework\Framework.csproj">
