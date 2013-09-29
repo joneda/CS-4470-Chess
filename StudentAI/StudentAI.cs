@@ -91,6 +91,9 @@ namespace StudentAI
 
 
 
+
+
+
         #region IChessAI Members that should be implemented as automatic properties and should NEVER be touched by students.
         /// <summary>
         /// This will return false when the framework starts running your AI. When the AI's time has run out,

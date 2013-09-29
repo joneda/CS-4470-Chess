@@ -37,12 +37,14 @@ namespace StudentAI
         };
 
         private ChessColor color;
+        private ChessBoard board;
         private Func<int[,], int> boardEvaluator;
 
         public List<ChessMove> AllPossibleMoves = new List<ChessMove>();
 
         public ChessState(ChessBoard board, ChessColor color, Func<int[,], int> boardEvaluator)
         {
+            this.board = board;
             this.boardEvaluator = boardEvaluator;
             this.color = color;
 
@@ -295,12 +297,27 @@ namespace StudentAI
             move.ValueOfMove = boardEvaluator(stateAfterMove);
 
             if (InCheck(stateAfterMove, true))
+            {
                 move.Flag = ChessFlag.Check;
+           
+                // TEST FOR CHECKMATE, THIS CODE DOESN'T SEEM TO WORK RIGHT NOW BUT I'M NOT SURE WHY
+                // we know its check, now lets see if its checkmate
+                // make a copy of the current board and execute the move that will put the enemy into check
+                ChessBoard temp = board.Clone();
+                temp.MakeMove(move);
+                // Determine the enemy color
+                ChessColor enemyColor = (color == ChessColor.White) ? ChessColor.Black : ChessColor.White;
+                // create a new state for the enemy so we can get all their possible response moves
+                ChessState stateToCheck = new ChessState(temp, enemyColor, boardEvaluator);
+                // if there are no possible moves for the enemy, they are in checkmate
+                if (stateToCheck.AllPossibleMoves.Count < 1)
+                    move.Flag = ChessFlag.Checkmate;
+            }
 
             AllPossibleMoves.Add(move);
         }
 
-        private int[,] GetStateAfterMove(ChessMove move)
+        public int[,] GetStateAfterMove(ChessMove move)
         {
             int[,] newState = (int[,])state.Clone();
 
