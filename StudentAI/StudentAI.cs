@@ -12,8 +12,7 @@ namespace StudentAI
         public StudentAI()
         {
             random = new Random();
-
-            solver = new GreedySolver(Heuristics.ValueOne, () => IsMyTurnOver());
+            solver = new GreedySolver();
         }
         #region IChessAI Members that are implemented by the Student
 
@@ -38,7 +37,12 @@ namespace StudentAI
         /// <returns> Returns the best chess move the player has for the given chess board</returns>
         public ChessMove GetNextMove(ChessBoard board, ChessColor myColor)
         {
-            return solver.GetMove(new ChessState(board, myColor));
+            ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.SimpleAddition));
+
+            if (move == null)
+                move = new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
+
+            return move;
         }
 
         /// <summary>

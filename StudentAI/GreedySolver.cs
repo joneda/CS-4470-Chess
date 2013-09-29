@@ -1,68 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UvsChess;
 
 namespace StudentAI
 {
     internal class GreedySolver
     {
-        private Func<ChessState, int> heuristic;
-        private Func<bool> timesUp;
+        Random rnd = new Random();
 
-        public GreedySolver(Func<ChessState, int> heuristic, Func<bool> timesUp)
+        public ChessMove GetMove(ChessState currentState)
         {
-            this.heuristic = heuristic;
-            this.timesUp = timesUp;
-        }
+            if (currentState.AllPossibleMoves.Count < 1)
+                return null;
 
-        public ChessMove GetMove(ChessState startingState)
-        {
-            ChessState current = null;
-            Stack<ChessState> nodes = new Stack<ChessState>();
-            HashSet<string> visited = new HashSet<string>();
+            int max = currentState.AllPossibleMoves.Max(m => m.ValueOfMove);
 
-            nodes.Push(startingState);
+            ChessMove[] bestMoves = currentState.AllPossibleMoves.Where(m => m.ValueOfMove == max).ToArray();
 
-            while (!timesUp() && nodes.Count > 0)
-            {
-                current = nodes.Pop();
+            ChessMove move = currentState.GetGameMove(bestMoves[rnd.Next(0, bestMoves.Length)]);
 
-                if (visited.Contains(current.PartialFenBoard))
-                    continue;
-
-                visited.Add(current.PartialFenBoard);
-
-                List<ChessState> possible = new List<ChessState>();
-                foreach (ChessMove move in current.AllPossibleMoves)
-                {
-                    possible.Add(current.Move(move));
-                }
-
-                possible.Sort(delegate(ChessState x, ChessState y)
-                {
-                    if (x == null && y == null)
-                        return 0;
-
-                    if (x == null)
-                        return -1;
-
-                    if (y == null)
-                        return 1;
-
-                    return heuristic(x).CompareTo(heuristic(y));
-                });
-
-
-                foreach (ChessState state in possible)
-                {
-                    nodes.Push(state);
-                }
-            }
-
-            while (current.Depth > 1)
-                current = current.PreviousState;
-
-            return current.ActionPerformed;
+            return move;
         }
     }
 }
