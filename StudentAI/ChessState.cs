@@ -44,7 +44,7 @@ namespace StudentAI
 
         public ChessState(ChessBoard board, ChessColor color, Func<int[,], int> boardEvaluator)
         {
-            this.board = board;
+            this.board = board.Clone();
             this.boardEvaluator = boardEvaluator;
             this.color = color;
 
