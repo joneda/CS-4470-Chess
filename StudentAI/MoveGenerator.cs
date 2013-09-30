@@ -30,6 +30,7 @@ namespace StudentAI
             Rows = state.GetLength(1);
 
             DetermineMoves();
+            log("End Move Generator: " + calculateCheckMate.ToString());
         }
 
         private void DetermineMoves()
@@ -65,9 +66,10 @@ namespace StudentAI
             if (InCheck(stateAfterMove, false))
                 return;
 
-            log("Checking InCheck for " + move.ToString());
+            log(move.ToString());
             if (InCheck(stateAfterMove, true))
             {
+                log("In Check " + move.ToString());
                 move.Flag = ChessFlag.Check;
 
                 if (calculateCheckMate)
@@ -78,7 +80,10 @@ namespace StudentAI
 
                     // if there are no possible moves for the enemy, they are in checkmate
                     if (enemyMoveGenerator.AllPossibleMoves.Count < 1)
+                    {
+                        log("enemy moves: " + enemyMoveGenerator.AllPossibleMoves.Count);
                         move.Flag = ChessFlag.Checkmate;
+                    }
                 }
             }
 
@@ -432,13 +437,13 @@ namespace StudentAI
                     {
                         // Check if the king is on the edge of the board or if a piece of the same color is next to him
                         bool down = true, up = true, right = true, left = true;
-                        if (!(row + 1 < Rows))
+                        if (row + 1 >= Rows)
                             down = false;
-                        if (!(row - 1 >= 0))
+                        if (row - 1 < 0)
                             up = false;
                         if (column + 1 >= Columns)
                             right = false;
-                        if (column - 1 <= 0)
+                        if (column - 1 < 0)
                             left = false;
 
                         if (down && !(state[column, row + 1] > Piece.Empty))
