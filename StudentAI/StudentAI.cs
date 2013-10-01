@@ -37,7 +37,7 @@ namespace StudentAI
         /// <returns> Returns the best chess move the player has for the given chess board</returns>
         public ChessMove GetNextMove(ChessBoard board, ChessColor myColor)
         {
-            ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.SimpleAddition, Log));
+            ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
 
             if (move == null)
                 move = new ChessMove(null, null) { Flag = ChessFlag.Stalemate };

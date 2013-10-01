@@ -62,6 +62,7 @@ namespace StudentAI
         {
             int[,] stateAfterMove = GetStateAfterMove(move);
 
+
             // If we're in check, then the move is illegal
             if (InCheck(stateAfterMove, false))
                 return;
@@ -87,9 +88,21 @@ namespace StudentAI
                 }
             }
 
-            if (boardEvaluator != null)
-                move.ValueOfMove = boardEvaluator(stateAfterMove, move.Flag == ChessFlag.Check, move.Flag == ChessFlag.Checkmate);
+            bool goForQueen = Heuristics.shouldAttemptToQueenPawn(stateAfterMove);
 
+            if (move.Flag != ChessFlag.Checkmate && goForQueen)
+            {
+                if (boardEvaluator != null && state[move.From.X, move.From.Y] == Piece.Pawn)
+                {
+                    move.ValueOfMove = boardEvaluator(stateAfterMove, move.Flag == ChessFlag.Check, move.Flag == ChessFlag.Checkmate);
+                    AllPossibleMoves.Add(move);
+                }
+            } 
+
+            else if (boardEvaluator != null && !goForQueen)
+            {
+                move.ValueOfMove = boardEvaluator(stateAfterMove, move.Flag == ChessFlag.Check, move.Flag == ChessFlag.Checkmate);
+            }
             AllPossibleMoves.Add(move);
         }
 
