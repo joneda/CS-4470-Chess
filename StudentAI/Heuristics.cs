@@ -9,9 +9,7 @@ namespace StudentAI
             int result = 0;
 
             if (check)
-            {
                 result += 1;
-            }
 
             if (checkMate)
                 result += 5000;
@@ -38,11 +36,6 @@ namespace StudentAI
                     result += 1;
                 else
                     result += 10;
-            }
-
-            if (shouldAttemptToQueenPawn(state))
-            {
-                pawn = 100;
             }
 
             if (checkMate)
