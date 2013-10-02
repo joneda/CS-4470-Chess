@@ -59,17 +59,24 @@ namespace StudentAI
             {
                 return true;
             }
-
+            ChessState state = new ChessState(boardBeforeMove, colorOfPlayerMoving, null, Log);
+            foreach (ChessMove move in state.AllPossibleMoves)
+            {
+                if (state.GetGameMove(move) == moveToCheck)
+                {
+                    return true;
+                }
+            }
             //Check to see if they moved a peice of their color then pass the validation on to the ValidMove class
-            ChessPiece movedPiece = boardBeforeMove[moveToCheck.From];
-            if (colorOfPlayerMoving == ChessColor.Black && movedPiece < ChessPiece.Empty)
-            {
-                return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
-            }
-            if (colorOfPlayerMoving == ChessColor.White && movedPiece > ChessPiece.Empty)
-            {
-                return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
-            }
+            //ChessPiece movedPiece = boardBeforeMove[moveToCheck.From];
+            //if (colorOfPlayerMoving == ChessColor.Black && movedPiece < ChessPiece.Empty)
+            //{
+            //    return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
+            //}
+            //if (colorOfPlayerMoving == ChessColor.White && movedPiece > ChessPiece.Empty)
+            //{
+            //    return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
+            //}
             return false;
         }
 
