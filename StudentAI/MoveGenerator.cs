@@ -13,12 +13,12 @@ namespace StudentAI
         private int Columns;
         private int Rows;
         private bool calculateCheckMate;
-        private Func<int[,], bool, bool, int> boardEvaluator;
+        private Func<int[,], ChessMove, int> boardEvaluator;
         private AILoggerCallback log;
 
         public List<ChessMove> AllPossibleMoves = new List<ChessMove>();
 
-        public MoveGenerator(int[,] state, bool calculateCheckMate, Func<int[,], bool, bool, int> boardEvaluator, AILoggerCallback log)
+        public MoveGenerator(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log)
         {
             log("Move Generator: " + calculateCheckMate.ToString());
             this.state = state;
@@ -88,21 +88,9 @@ namespace StudentAI
                 }
             }
 
-            bool goForQueen = Heuristics.shouldAttemptToQueenPawn(stateAfterMove);
+            if (boardEvaluator != null)
+                move.ValueOfMove = boardEvaluator(stateAfterMove, move);
 
-            if (move.Flag != ChessFlag.Checkmate && goForQueen)
-            {
-                if (boardEvaluator != null && state[move.From.X, move.From.Y] == Piece.Pawn)
-                {
-                    move.ValueOfMove = boardEvaluator(stateAfterMove, move.Flag == ChessFlag.Check, move.Flag == ChessFlag.Checkmate);
-                    AllPossibleMoves.Add(move);
-                }
-            } 
-
-            else if (boardEvaluator != null && !goForQueen)
-            {
-                move.ValueOfMove = boardEvaluator(stateAfterMove, move.Flag == ChessFlag.Check, move.Flag == ChessFlag.Checkmate);
-            }
             AllPossibleMoves.Add(move);
         }
 

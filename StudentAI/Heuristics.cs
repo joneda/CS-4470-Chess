@@ -4,14 +4,14 @@ namespace StudentAI
 {
     internal static class Heuristics
     {
-        public static int SimpleAddition(int[,] state, bool check, bool checkMate)
+        public static int SimpleAddition(int[,] state, ChessMove move)
         {
             int result = 0;
 
-            if (check)
+            if (move.Flag == ChessFlag.Check)
                 result += 1;
 
-            if (checkMate)
+            if (move.Flag == ChessFlag.Checkmate)
                 result += 5000;
             
             for (int x = 0; x < state.GetLength(0); x++)
@@ -25,12 +25,12 @@ namespace StudentAI
             return result;
         }
 
-        public static int MoreAdvancedAddition(int[,] state, bool check, bool checkMate)
+        public static int MoreAdvancedAddition(int[,] state, ChessMove move)
         {
             int pawn = 1, knight = 3, bishop = 3, rook = 5, queen = 9, king = 10;
             int result = 0;
 
-            if (check)
+            if (move.Flag == ChessFlag.Check)
             {
                 if (isByKing(state))
                     result += 1;
@@ -38,8 +38,15 @@ namespace StudentAI
                     result += 10;
             }
 
-            if (checkMate)
+            if (move.Flag == ChessFlag.Checkmate)
+            {
                 result += 5000;
+            }
+            else if (state[move.To.X, move.To.Y] == Piece.Pawn && Heuristics.shouldAttemptToQueenPawn(state))
+            {
+                // increment by a large number, but less than checkmate so if a checkmate move exists we don't pass it over for an attempt to queen a pawn
+                result += 2000;
+            }
 
             for (int x = 0; x < state.GetLength(0); x++)
             {

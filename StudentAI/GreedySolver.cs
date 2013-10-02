@@ -16,11 +16,11 @@ namespace StudentAI
 
             int max = currentState.AllPossibleMoves.Max(m => m.ValueOfMove);
 
-            //ChessMove[] bestMoves = currentState.AllPossibleMoves.Where(m => m.ValueOfMove == max).ToArray();
+            ChessMove[] bestMoves = currentState.AllPossibleMoves.Where(m => m.ValueOfMove == max).ToArray();
 
-            //ChessMove move = currentState.GetGameMove(bestMoves[rnd.Next(0, bestMoves.Length)]);
+            ChessMove move = currentState.GetGameMove(bestMoves[rnd.Next(0, bestMoves.Length)]);
 
-            ChessMove move = currentState.GetGameMove(currentState.AllPossibleMoves.First(m => m.ValueOfMove == max));
+            //ChessMove move = currentState.GetGameMove(currentState.AllPossibleMoves.First(m => m.ValueOfMove == max));
 
             return move;
         }

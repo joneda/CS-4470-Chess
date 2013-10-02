@@ -32,7 +32,7 @@ namespace StudentAI
         private AILoggerCallback log;
         public List<ChessMove> AllPossibleMoves;
 
-        public ChessState(ChessBoard board, ChessColor color, Func<int[,], bool, bool, int> boardEvaluator, AILoggerCallback log)
+        public ChessState(ChessBoard board, ChessColor color, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log)
         {
             log(board.ToPartialFenBoard());
             this.color = color;
