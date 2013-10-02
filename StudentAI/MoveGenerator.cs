@@ -372,6 +372,7 @@ namespace StudentAI
 
 
                         // Possible rook moves to the right of the board
+                        keepgoing = true;
                         for (int c = column + 1; keepgoing && c < Columns; c++)
                         {
                             // If the potential new location is where a piece of the same color is, we can't move there
@@ -485,9 +486,27 @@ namespace StudentAI
 
         private bool InCheck(int[,] stateToCheck, bool enemy)
         {
+            int kingToCheck = enemy ? -Piece.King : Piece.King;
+
+            ChessLocation kingLocation = LocatePiece(stateToCheck, kingToCheck);
+
+            if (kingLocation == null)
+            {
+                log("kingLocation is null");
+                return true;
+            }
+
+            return InDanger(stateToCheck, kingLocation);
+        }
+
+        public static bool InDanger(int[,] stateToCheck, ChessLocation pieceLocation)
+        {
+            int columnCount = stateToCheck.GetLength(0);
+            int rowCount = stateToCheck.GetLength(1);
+
+            bool enemy = stateToCheck[pieceLocation.X, pieceLocation.Y] < Piece.Empty;
             int multiplier = enemy ? -1 : 1;
 
-            int kingToCheck = multiplier * Piece.King;
             int attackingPawn = multiplier * -Piece.Pawn;
             int attackingKnight = multiplier * -Piece.Knight;
             int attackingBishop = multiplier * -Piece.Bishop;
@@ -496,13 +515,6 @@ namespace StudentAI
             int attackingKing = multiplier * -Piece.King;
 
             int col, row;
-            ChessLocation kingLocation = LocatePiece(stateToCheck, kingToCheck);
-
-            if (kingLocation == null)
-            {
-                log("kingLocation is null");
-                return true;
-            }
 
             bool checkUp = true;
             bool checkDown = true;
@@ -517,8 +529,8 @@ namespace StudentAI
 
             while (!done)
             {
-                col = kingLocation.X;
-                row = kingLocation.Y;
+                col = pieceLocation.X;
+                row = pieceLocation.Y;
                 int up = row - distance;
                 int down = row + distance;
                 int left = col - distance;
@@ -534,7 +546,7 @@ namespace StudentAI
                         return true;
                 }
 
-                if (checkDown && down < Rows && stateToCheck[col, down] != Piece.Empty)
+                if (checkDown && down < rowCount && stateToCheck[col, down] != Piece.Empty)
                 {
                     checkDown = false;
                     if (stateToCheck[col, down] == attackingQueen || stateToCheck[col, down] == attackingRook)
@@ -554,7 +566,7 @@ namespace StudentAI
                         return true;
                 }
 
-                if (checkRight && right < Columns && stateToCheck[right, row] != Piece.Empty)
+                if (checkRight && right < columnCount && stateToCheck[right, row] != Piece.Empty)
                 {
                     checkRight = false;
                     if (stateToCheck[right, row] == attackingQueen || stateToCheck[right, row] == attackingRook)
@@ -574,7 +586,7 @@ namespace StudentAI
                         return true;
                 }
 
-                if (checkUpRight && up >= 0 && right < Columns && stateToCheck[right, up] != Piece.Empty)
+                if (checkUpRight && up >= 0 && right < columnCount && stateToCheck[right, up] != Piece.Empty)
                 {
                     checkUpRight = false;
                     if (stateToCheck[right, up] == attackingQueen || stateToCheck[right, up] == attackingBishop)
@@ -584,7 +596,7 @@ namespace StudentAI
                         return true;
                 }
 
-                if (checkDownLeft && down < Rows && left >= 0 && stateToCheck[left, down] != Piece.Empty)
+                if (checkDownLeft && down < rowCount && left >= 0 && stateToCheck[left, down] != Piece.Empty)
                 {
                     checkDownLeft = false;
                     if (stateToCheck[left, down] == attackingQueen || stateToCheck[left, down] == attackingBishop)
@@ -594,7 +606,7 @@ namespace StudentAI
                         return true;
                 }
 
-                if (checkDownRight && down < Rows && right < Columns && stateToCheck[right, down] != Piece.Empty)
+                if (checkDownRight && down < rowCount && right < columnCount && stateToCheck[right, down] != Piece.Empty)
                 {
                     checkDownRight = false;
                     if (stateToCheck[right, down] == attackingQueen || stateToCheck[right, down] == attackingBishop)
@@ -605,64 +617,64 @@ namespace StudentAI
                 }
 
                 done = !(checkUp || checkDown || checkLeft || checkRight || checkUpLeft || checkUpRight || checkDownLeft || checkDownRight);
-                done = done || (up < 0 && left < 0 && down >= Rows && right >= Columns);
+                done = done || (up < 0 && left < 0 && down >= rowCount && right >= columnCount);
                 distance++;
             }
 
             // Check knight left up
-            col = kingLocation.X - 2;
-            row = kingLocation.Y - 1;
+            col = pieceLocation.X - 2;
+            row = pieceLocation.Y - 1;
 
             if (col >= 0 && row >= 0 && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             // Check knight left down
-            col = kingLocation.X - 2;
-            row = kingLocation.Y + 1;
+            col = pieceLocation.X - 2;
+            row = pieceLocation.Y + 1;
 
-            if (col >= 0 && row < Rows && stateToCheck[col, row] == attackingKnight)
+            if (col >= 0 && row < rowCount && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             // Check knight up left
-            col = kingLocation.X - 1;
-            row = kingLocation.Y - 2;
+            col = pieceLocation.X - 1;
+            row = pieceLocation.Y - 2;
 
             if (col >= 0 && row >= 0 && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             // Check knight up right
-            col = kingLocation.X + 1;
-            row = kingLocation.Y - 2;
+            col = pieceLocation.X + 1;
+            row = pieceLocation.Y - 2;
 
-            if (col < Columns && row >= 0 && stateToCheck[col, row] == attackingKnight)
+            if (col < columnCount && row >= 0 && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             // Check knight right up
-            col = kingLocation.X + 2;
-            row = kingLocation.Y - 1;
+            col = pieceLocation.X + 2;
+            row = pieceLocation.Y - 1;
 
-            if (col < Columns && row >= 0 && stateToCheck[col, row] == attackingKnight)
+            if (col < columnCount && row >= 0 && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             // Check knight right down
-            col = kingLocation.X + 2;
-            row = kingLocation.Y + 1;
+            col = pieceLocation.X + 2;
+            row = pieceLocation.Y + 1;
 
-            if (col < Columns && row < Rows && stateToCheck[col, row] == attackingKnight)
+            if (col < columnCount && row < rowCount && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             // Check knight down left
-            col = kingLocation.X - 1;
-            row = kingLocation.Y + 2;
+            col = pieceLocation.X - 1;
+            row = pieceLocation.Y + 2;
 
-            if (col >= 0 && row < Rows && stateToCheck[col, row] == attackingKnight)
+            if (col >= 0 && row < rowCount && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             // Check knight down right
-            col = kingLocation.X + 1;
-            row = kingLocation.Y + 2;
+            col = pieceLocation.X + 1;
+            row = pieceLocation.Y + 2;
 
-            if (col < Columns && row < Rows && stateToCheck[col, row] == attackingKnight)
+            if (col < columnCount && row < rowCount && stateToCheck[col, row] == attackingKnight)
                 return true;
 
             return false;

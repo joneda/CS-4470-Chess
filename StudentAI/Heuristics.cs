@@ -1,4 +1,5 @@
-﻿using UvsChess;
+﻿using System;
+using UvsChess;
 
 namespace StudentAI
 {
@@ -32,10 +33,10 @@ namespace StudentAI
 
             if (move.Flag == ChessFlag.Check)
             {
-                if (isByKing(state))
+                //if (isByKing(state))
                     result += 1;
-                else
-                    result += 10;
+                //else
+                  //  result += 10;
             }
 
             if (move.Flag == ChessFlag.Checkmate)
@@ -52,25 +53,31 @@ namespace StudentAI
             {
                 for (int y = 0; y < state.GetLength(1); y++)
                 {
-                    switch (state[x, y])
+                    // If my piece is in danger, then consider it dead and don't add it to the sum
+                    if (state[x,y] > Piece.Empty && MoveGenerator.InDanger(state, new ChessLocation(x, y)))
+                        continue;
+
+                    int multiplier = state[x, y] < Piece.Empty ? -1 : 0;
+
+                    switch (Math.Abs(state[x, y]))
                     {
                         case Piece.Pawn:
-                            result += pawn;
+                            result += multiplier * pawn;
                             break;
                         case Piece.Knight:
-                            result += knight;
+                            result += multiplier * knight;
                             break;
                         case Piece.Bishop:
-                            result += bishop;
+                            result += multiplier * bishop;
                             break;
                         case Piece.Rook:
-                            result += rook;
+                            result += multiplier * rook;
                             break;
                         case Piece.Queen:
-                            result += queen;
+                            result += multiplier * queen;
                             break;
                         case Piece.King:
-                            result += king;
+                            result += multiplier * king;
                             break;
                         default:
                             result += state[x, y];
