@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UvsChess;
 
 namespace StudentAI
@@ -37,6 +38,9 @@ namespace StudentAI
         /// <returns> Returns the best chess move the player has for the given chess board</returns>
         public ChessMove GetNextMove(ChessBoard board, ChessColor myColor)
         {
+#if DEBUG
+            Log("Determining Next Move");
+#endif
             ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
 
             if (move == null)
@@ -59,7 +63,12 @@ namespace StudentAI
             {
                 return true;
             }
+
+#if DEBUG
+            Log("Generating Opponent's Moves");
+#endif
             ChessState state = new ChessState(boardBeforeMove, colorOfPlayerMoving, null, Log);
+
             foreach (ChessMove move in state.AllPossibleMoves)
             {
                 if (state.GetGameMove(move) == moveToCheck)
@@ -67,16 +76,20 @@ namespace StudentAI
                     return true;
                 }
             }
-            //Check to see if they moved a peice of their color then pass the validation on to the ValidMove class
-            //ChessPiece movedPiece = boardBeforeMove[moveToCheck.From];
-            //if (colorOfPlayerMoving == ChessColor.Black && movedPiece < ChessPiece.Empty)
-            //{
-            //    return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
-            //}
-            //if (colorOfPlayerMoving == ChessColor.White && movedPiece > ChessPiece.Empty)
-            //{
-            //    return ValidateMove.ValidMove(boardBeforeMove, moveToCheck, colorOfPlayerMoving);
-            //}
+
+            ChessMove nearMatch = state.AllPossibleMoves
+                .Select(m => state.GetGameMove(m))
+                .Where(m => m.From == moveToCheck.From && m.To == moveToCheck.To).FirstOrDefault();
+            
+            if (nearMatch != null)
+            {
+                Log(string.Format("Invalid Move ({0}). Expected the {1} flag to be set.", moveToCheck, nearMatch.Flag));
+            }
+            else
+            {
+                Log(string.Format("Invalid Move ({0}). The move was not in my list of possible moves.", moveToCheck));
+            }
+
             return false;
         }
 

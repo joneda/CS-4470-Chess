@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using UvsChess;
 
 namespace StudentAI
 {
+    /// <summary>
+    /// Generates the list of all possible moves that can be made by the friendly pieces on a ChessState
+    /// board layout
+    /// </summary>
     internal class MoveGenerator
     {
         private int[,] state;
@@ -16,11 +17,24 @@ namespace StudentAI
         private Func<int[,], ChessMove, int> boardEvaluator;
         private AILoggerCallback log;
 
+        /// <summary>
+        /// The list of all possible moves.
+        /// </summary>
         public List<ChessMove> AllPossibleMoves = new List<ChessMove>();
 
+        /// <summary>
+        /// Constructor. Initializes the object by calculating all possible moves
+        /// </summary>
+        /// <param name="state">The current board state in the ChessState (friend/foe) board style</param>
+        /// <param name="calculateCheckMate">Checkmate will only be calculated if this is true</param>
+        /// <param name="boardEvaluator">The heuristc method to use in determining move value</param>
+        /// <param name="log">Callback method that will be used for logging</param>
         public MoveGenerator(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log)
         {
+#if DEBUG
             log("Move Generator: " + calculateCheckMate.ToString());
+#endif
+
             this.state = state;
             this.calculateCheckMate = calculateCheckMate;
             this.boardEvaluator = boardEvaluator;
@@ -30,7 +44,10 @@ namespace StudentAI
             Rows = state.GetLength(1);
 
             DetermineMoves();
+
+#if DEBUG
             log("End Move Generator: " + calculateCheckMate.ToString());
+#endif
         }
 
         private void DetermineMoves()
@@ -45,7 +62,7 @@ namespace StudentAI
             }
         }
 
-        public int[,] GetStateAfterMove(ChessMove move)
+        private int[,] GetStateAfterMove(ChessMove move)
         {
             int[,] newState = (int[,])state.Clone();
 
@@ -62,15 +79,12 @@ namespace StudentAI
         {
             int[,] stateAfterMove = GetStateAfterMove(move);
 
-
             // If we're in check, then the move is illegal
             if (InCheck(stateAfterMove, false))
                 return;
 
-            log(move.ToString());
             if (InCheck(stateAfterMove, true))
             {
-                log("In Check " + move.ToString());
                 move.Flag = ChessFlag.Check;
 
                 if (calculateCheckMate)
@@ -81,15 +95,16 @@ namespace StudentAI
 
                     // if there are no possible moves for the enemy, they are in checkmate
                     if (enemyMoveGenerator.AllPossibleMoves.Count < 1)
-                    {
-                        log("enemy moves: " + enemyMoveGenerator.AllPossibleMoves.Count);
                         move.Flag = ChessFlag.Checkmate;
-                    }
                 }
             }
 
             if (boardEvaluator != null)
                 move.ValueOfMove = boardEvaluator(stateAfterMove, move);
+
+#if DEBUG
+            log(string.Format("{0} Value: {1}", move, move.ValueOfMove));
+#endif
 
             AllPossibleMoves.Add(move);
         }

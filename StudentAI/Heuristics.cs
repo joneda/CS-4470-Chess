@@ -1,10 +1,83 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using UvsChess;
 
 namespace StudentAI
 {
+    /// <summary>
+    /// This class contains various Heuristic methods that can be used interchangeably with the GreedySolver
+    /// </summary>
     internal static class Heuristics
     {
+        private static readonly Dictionary<int, int> pieceValue = new Dictionary<int, int>
+        {
+            {-Piece.King, -10},
+            {-Piece.Queen, -9},
+            {-Piece.Rook, -5},
+            {-Piece.Bishop, -3},
+            {-Piece.Knight, -3},
+            {-Piece.Pawn, -1},
+            {Piece.Empty, 0 },
+            {Piece.Pawn, 1 },
+            {Piece.Knight, 3},
+            {Piece.Bishop, 3},
+            {Piece.Rook, 5},
+            {Piece.Queen, 9},
+            {Piece.King, 10},
+        };
+
+        /// <summary>
+        /// Uses a value system to determine the worth of each piece. 
+        /// Gives precedence to check if the move doesn't put the piece in danger of being killed. 
+        /// Moves pawns foward if there is a chance of queen promotion.
+        /// </summary>
+        /// <param name="state">The state to generate the heursitic for</param>
+        /// <param name="move">The state move that was made to create this new state</param>
+        /// <returns>Numeric value indicating a value for this state</returns>
+        public static int MoreAdvancedAddition(int[,] state, ChessMove move)
+        {
+            int result = 0;
+            bool danger = MoveGenerator.InDanger(state, move.To);
+
+            if (move.Flag == ChessFlag.Check)
+            {
+                if (danger)
+                    result += 1;
+                else
+                    result += 10;
+            }
+
+            if (move.Flag == ChessFlag.Checkmate)
+            {
+                result += 5000;
+            }
+            else if (!danger && Heuristics.shouldAttemptToQueenPawn(state, move.To))
+            {
+                result += 1;
+            }
+
+            for (int x = 0; x < state.GetLength(0); x++)
+            {
+                for (int y = 0; y < state.GetLength(1); y++)
+                {
+                    int piece = state[x, y];
+
+                    // Only add my piece if it's not in danger
+                    if (piece <= 0 || !MoveGenerator.InDanger(state, new ChessLocation(x, y)))
+                        result += pieceValue[piece];
+                }
+            }
+
+            return result;
+        }
+
+        #region Heuristics not currently in use
+
+        /// <summary>
+        /// Very basic Heuristic that just adds up the numeric state values of each piece. Some allowance is made for check and checkmate as well
+        /// </summary>
+        /// <param name="state">The state to generate the heursitic for</param>
+        /// <param name="move">The state move that was made to create this new state</param>
+        /// <returns>Numeric value indicating a value for this state</returns>
         public static int SimpleAddition(int[,] state, ChessMove move)
         {
             int result = 0;
@@ -26,152 +99,67 @@ namespace StudentAI
             return result;
         }
 
-        public static int MoreAdvancedAddition(int[,] state, ChessMove move)
+        /// <summary>
+        /// Adds on to the SimpleAddition Heuristic by checking if the piece that is being moved is in danger of being killed. If it
+        /// is, then the state value of the piece is removed from the result.
+        /// </summary>
+        /// <param name="state">The state to generate the heursitic for</param>
+        /// <param name="move">The state move that was made to create this new state</param>
+        /// <returns>Numeric value indicating a value for this state</returns>
+        public static int DontGoToDanger(int[,] state, ChessMove move)
         {
-            int pawn = 1, knight = 3, bishop = 3, rook = 5, queen = 9, king = 10;
+            int result = SimpleAddition(state, move);
+
+            if (MoveGenerator.InDanger(state, move.To))
+                result -= state[move.To.X, move.To.Y];
+
+            return result;
+        }
+
+        /// <summary>
+        /// Only counts friendly pieces that are not in danger of being killed
+        /// </summary>
+        /// <param name="state">The state to generate the heursitic for</param>
+        /// <param name="move">The state move that was made to create this new state</param>
+        /// <returns>Numeric value indicating a value for this state</returns>
+        public static int Cautious(int[,] state, ChessMove move)
+        {
             int result = 0;
 
             if (move.Flag == ChessFlag.Check)
-            {
-                //if (isByKing(state))
-                    result += 1;
-                //else
-                  //  result += 10;
-            }
+                result += 1;
 
             if (move.Flag == ChessFlag.Checkmate)
-            {
                 result += 5000;
-            }
-            else if (state[move.To.X, move.To.Y] == Piece.Pawn && Heuristics.shouldAttemptToQueenPawn(state))
-            {
-                // increment by a large number, but less than checkmate so if a checkmate move exists we don't pass it over for an attempt to queen a pawn
-                result += 2000;
-            }
 
             for (int x = 0; x < state.GetLength(0); x++)
             {
                 for (int y = 0; y < state.GetLength(1); y++)
                 {
-                    // If my piece is in danger, then consider it dead and don't add it to the sum
-                    if (state[x,y] > Piece.Empty && MoveGenerator.InDanger(state, new ChessLocation(x, y)))
-                        continue;
+                    int piece = state[x, y];
 
-                    int multiplier = state[x, y] < Piece.Empty ? -1 : 0;
-
-                    switch (Math.Abs(state[x, y]))
-                    {
-                        case Piece.Pawn:
-                            result += multiplier * pawn;
-                            break;
-                        case Piece.Knight:
-                            result += multiplier * knight;
-                            break;
-                        case Piece.Bishop:
-                            result += multiplier * bishop;
-                            break;
-                        case Piece.Rook:
-                            result += multiplier * rook;
-                            break;
-                        case Piece.Queen:
-                            result += multiplier * queen;
-                            break;
-                        case Piece.King:
-                            result += multiplier * king;
-                            break;
-                        default:
-                            result += state[x, y];
-                            break;
-                    }
+                    if (piece <= 0 || !MoveGenerator.InDanger(state, new ChessLocation(x, y)))
+                        result += piece;
                 }
             }
 
             return result;
         }
 
-        public static bool isByKing(int[,] state)
+        #endregion Heuristics not currently in use
+
+        private static bool shouldAttemptToQueenPawn(int[,] state, ChessLocation pawnLocation)
         {
-            int row = -1, column = -1;
-            for (int i = 0; i < ChessBoard.NumberOfRows; i++)
+            if (state[pawnLocation.X, pawnLocation.Y] == Piece.Pawn)
+                return false;
+
+            for (int row = pawnLocation.Y + 1; row < state.GetLength(1); row++)
             {
-                for (int j = 0; j < ChessBoard.NumberOfColumns; j++)
-                {
-                    if (state[j, i] == -Piece.King)
-                    {
-                        row = i; column = j;
-                    }
-                }
+                if (state[pawnLocation.X, row] != Piece.Empty)
+                    return false;
             }
 
-            bool up = row + 1 < ChessBoard.NumberOfRows;
-            bool down = row - 1 >= 0;
-            bool right = column + 1 < ChessBoard.NumberOfColumns;
-            bool left = column - 1 >= 0;
-
-
-            // up
-            if (up)
-            {
-                if (state[column, row + 1] == Piece.Rook || state[column, row + 1] == Piece.Queen)
-                    return true;
-            }
-            // down
-            if (down)
-            {
-                if (state[column, row - 1] == Piece.Rook || state[column, row - 1] == Piece.Queen)
-                    return true;
-            }
-            // right
-            if (right)
-            {
-                if (state[column + 1, row] == Piece.Rook || state[column + 1, row] == Piece.Queen)
-                    return true;
-            }
-            // left
-            if (left)
-            {
-                if (state[column - 1, row] == Piece.Rook || state[column - 1, row] == Piece.Queen)
-                    return true;
-            }
-
-            // up right
-            if (up && right)
-            {
-                if (state[column + 1, row + 1] == Piece.Bishop || state[column + 1, row + 1] == Piece.Queen || state[column + 1, row + 1] == Piece.Pawn)
-                    return true;
-            }
-            // up left
-            if (up && left)
-            {
-                if (state[column - 1, row + 1] == Piece.Bishop || state[column - 1, row + 1] == Piece.Queen || state[column - 1, row + 1] == Piece.Pawn)
-                    return true;
-            }
-            // down right
-            if (down && right)
-            {
-                if (state[column + 1, row - 1] == Piece.Bishop || state[column + 1, row - 1] == Piece.Queen)
-                    return true;
-            }
-            // down left
-            if (down && left)
-            {
-                if (state[column - 1, row - 1] == Piece.Bishop || state[column - 1, row - 1] == Piece.Queen)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static bool shouldAttemptToQueenPawn(int[,] state)
-        {
-            int numberOfQueensAndRooks = 0;
-            foreach (int p in state)
-                if (p == Piece.Queen || p == Piece.Rook)
-                    numberOfQueensAndRooks++;
-            if (numberOfQueensAndRooks < 2)
-                return true;
-
-            return false;
+            return true;
         }
     }
 }

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace StudentAI
+﻿namespace StudentAI
 {
+    /// <summary>
+    /// Simplified values for chess peices for use in ChessState
+    /// </summary>
     internal static class Piece
     {
         public const int Empty = 0;

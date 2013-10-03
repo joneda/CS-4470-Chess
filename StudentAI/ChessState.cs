@@ -4,11 +4,14 @@ using UvsChess;
 
 namespace StudentAI
 {
+    /// <summary>
+    /// Represents game board as friend vs. foe where friend always starts at 0,0 side of the board.
+    /// Determines all possible moves that the friendly pieces can make.
+    /// </summary>
     internal class ChessState
     {
         private int Columns;
         private int Rows;
-
         private int[,] state;
 
         private static readonly Dictionary<ChessPiece, int> GamePieceToStatePiece = new Dictionary<ChessPiece, int>
@@ -32,9 +35,19 @@ namespace StudentAI
         private AILoggerCallback log;
         public List<ChessMove> AllPossibleMoves;
 
+        /// <summary>
+        /// Constructor. Converts ChessBoard to ChessState by ensuring that all pieces are represented as either friend or foe, with friend being
+        /// positive values, and foe being negative values.
+        /// </summary>
+        /// <param name="board">The original ChessBoard to generate this state from</param>
+        /// <param name="color">The color to be treated as friend</param>
+        /// <param name="boardEvaluator">Heuristic method to use in determining move value</param>
+        /// <param name="log">Callback to use for logging</param>
         public ChessState(ChessBoard board, ChessColor color, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log)
         {
+#if DEBUG
             log(board.ToPartialFenBoard());
+#endif
             this.color = color;
             this.log = log;
 
@@ -70,9 +83,15 @@ namespace StudentAI
             AllPossibleMoves = generator.AllPossibleMoves;
         }
 
+        /// <summary>
+        /// Converts a state based move to a ChessBoard move
+        /// </summary>
+        /// <param name="stateMove"></param>
+        /// <returns></returns>
         public ChessMove GetGameMove(ChessMove stateMove)
         {
             ChessMove gameMove = stateMove.Clone();
+
             if (color == ChessColor.White)
             {
                 gameMove.From.X = Columns - gameMove.From.X - 1;
