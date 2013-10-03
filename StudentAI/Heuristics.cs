@@ -39,12 +39,7 @@ namespace StudentAI
             bool danger = MoveGenerator.InDanger(state, move.To);
 
             if (move.Flag == ChessFlag.Check)
-            {
-                if (danger)
-                    result += 1;
-                else
-                    result += 10;
-            }
+                result += 1;
 
             if (move.Flag == ChessFlag.Checkmate)
             {

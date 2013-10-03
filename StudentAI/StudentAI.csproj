@@ -34,7 +34,8 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>False</Optimize>
     <OutputPath>../Framework/bin/Release/</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <OutputType>Library</OutputType>
