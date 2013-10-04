@@ -35,6 +35,11 @@ namespace StudentAI
         private AILoggerCallback log;
         public List<ChessMove> AllPossibleMoves;
 
+        private ChessState()
+        {
+            
+        }
+
         /// <summary>
         /// Constructor. Converts ChessBoard to ChessState by ensuring that all pieces are represented as either friend or foe, with friend being
         /// positive values, and foe being negative values.
@@ -101,6 +106,57 @@ namespace StudentAI
             }
 
             return gameMove;
+        }
+
+        static public ChessState GetStateAfterMove(ChessState currentState, ChessMove move, Func<int[,], ChessMove, int> boardEvaluator, bool swappBoardAndColor)
+        {
+            ChessState newState = new ChessState();
+            newState.Columns = currentState.Columns;
+            newState.Rows = currentState.Rows;
+            newState.log = currentState.log;
+            newState.state = MakeMove(currentState.state, move);
+            if (swappBoardAndColor)
+            {
+                if (currentState.color == ChessColor.Black)
+                {
+                    newState.color = ChessColor.White;
+                }
+                else
+                {
+                    newState.color = ChessColor.Black;
+                }
+
+                //Swapp all the peices on the board to reverse the friend vs foe
+                int columnSwapp = ChessBoard.NumberOfColumns;
+                int rowSwapp = ChessBoard.NumberOfRows;
+                for (int i = 0; i < columnSwapp; i++)
+                {
+                    for (int j = 0; j < rowSwapp / 2; j++)
+                    {
+                        int temp = newState.state[i, j];
+                        newState.state[i, j] = newState.state[columnSwapp - 1 - i, rowSwapp - 1 - j];
+                        newState.state[columnSwapp - 1 - i, rowSwapp - 1 - j] = temp;
+                    }
+                }
+            }
+            else
+            {
+                newState.color = currentState.color;
+            }
+            newState.AllPossibleMoves = new MoveGenerator(newState.state, true, boardEvaluator, newState.log).AllPossibleMoves;
+            return newState;
+        }
+
+        static public int[,] MakeMove(int[,] currentState, ChessMove move)
+        {
+            int[,] newState = (int[,])currentState.Clone();
+
+            newState[move.To.X, move.To.Y] = newState[move.From.X, move.From.Y];
+            newState[move.From.X, move.From.Y] = Piece.Empty;
+            if (newState[move.To.X, move.To.Y] == Piece.Pawn && move.To.Y == ChessBoard.NumberOfColumns - 1)
+                newState[move.To.X, move.To.Y] = Piece.Queen;
+
+            return newState;
         }
     }
 }

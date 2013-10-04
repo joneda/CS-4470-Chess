@@ -53,6 +53,7 @@
     <Compile Include="ChessState.cs" />
     <Compile Include="GreedySolver.cs" />
     <Compile Include="Heuristics.cs" />
+    <Compile Include="MiniMax.cs" />
     <Compile Include="MoveGenerator.cs" />
     <Compile Include="Piece.cs" />
     <Compile Include="StudentAI.cs" />

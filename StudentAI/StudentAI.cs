@@ -6,14 +6,16 @@ namespace StudentAI
 {
     public class StudentAI : IChessAI
     {
-        private Random random;
+        //private Random random;
 
-        private GreedySolver solver;
+        //private GreedySolver solver;
+        private MiniMax miniMax;
 
         public StudentAI()
         {
-            random = new Random();
-            solver = new GreedySolver();
+            //random = new Random();
+            //solver = new GreedySolver();
+            miniMax = new MiniMax(2, Heuristics.MoreAdvancedAddition);
         }
         #region IChessAI Members that are implemented by the Student
 
@@ -41,11 +43,14 @@ namespace StudentAI
 #if DEBUG
             Log("Determining Next Move");
 #endif
-            ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
-
+            //ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
+            ChessMove move = null;
+            //while (!IsMyTurnOver())
+            //{
+                move = miniMax.MaxValue(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log), 0, null);
+            //}
             if (move == null)
                 move = new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
-
             return move;
         }
 
