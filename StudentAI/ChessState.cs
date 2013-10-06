@@ -119,11 +119,11 @@ namespace StudentAI
             {
                 if (currentState.color == ChessColor.Black)
                 {
-                    newState.color = ChessColor.White;
+                   newState.color = ChessColor.White;
                 }
                 else
                 {
-                    newState.color = ChessColor.Black;
+                   newState.color = ChessColor.Black;
                 }
 
                 //Swapp all the peices on the board to reverse the friend vs foe
