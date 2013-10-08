@@ -133,6 +133,7 @@ namespace StudentAI
                 Rows = Rows,
                 state = (int[,])state.Clone(),
                 color = color,
+				boardEvaluator = boardEvaluator,
                 log = log,
             };
 

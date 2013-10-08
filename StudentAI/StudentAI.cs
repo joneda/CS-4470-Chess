@@ -48,7 +48,7 @@ namespace StudentAI
             ChessMove move = null;
             //while (!IsMyTurnOver())
             //{
-                move = miniMax.MiniMaxMove(new ChessState(board, myColor, Heuristics.SimpleAddition, Log));
+                move = miniMax.MiniMaxMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
             //}
             if (move == null)
                 move = new ChessMove(null, null) { Flag = ChessFlag.Stalemate };

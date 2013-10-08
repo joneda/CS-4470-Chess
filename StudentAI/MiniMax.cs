@@ -21,6 +21,9 @@ namespace StudentAI
 
         public ChessMove MiniMaxMove(ChessState state)
         {
+			// Reverse Sort the moves
+			state.AllPossibleMoves.Sort((x, y) => y.ValueOfMove.CompareTo(x.ValueOfMove));
+
             ChessMove bestMove = state.AllPossibleMoves[0];
             int bestValue = int.MinValue;
             int i; 
@@ -38,7 +41,7 @@ namespace StudentAI
                 }
             }
 
-            log(string.Format("Processed {0} moves out of {1}", i, state.AllPossibleMoves.Count));
+            log(string.Format("Processed {0} move(s) out of {1}. Move value: {2}", i, state.AllPossibleMoves.Count, bestValue));
 
             return state.GetGameMove(bestMove);
         }
@@ -55,12 +58,11 @@ namespace StudentAI
             for (int i = 0; i < state.AllPossibleMoves.Count && !timesUp(); i++)
             {
                 value = Math.Max(value,
-                                 MinValue(
-                                     state.GetStateAfterMove(state.AllPossibleMoves[i], true),
+                                 MinValue(state.GetStateAfterMove(state.AllPossibleMoves[i], true),
                                      currentDepth + 1, state.AllPossibleMoves[i].ValueOfMove));
             }
 
-            return value;
+			return value == int.MinValue ? moveValue : value;
         }
 
         private int MinValue(ChessState state, int currentDepth, int moveValue)
@@ -75,12 +77,11 @@ namespace StudentAI
             for (int i = 0; i < state.AllPossibleMoves.Count && !timesUp(); i++)
             {
                 value = Math.Min(value,
-                                 MaxValue(
-                                     state.GetStateAfterMove(state.AllPossibleMoves[i], true),
+                                 MaxValue(state.GetStateAfterMove(state.AllPossibleMoves[i], true),
                                      currentDepth + 1, -state.AllPossibleMoves[i].ValueOfMove));
             }
 
-            return value;
+			return value == int.MinValue ? moveValue : value;
         }
 
 
