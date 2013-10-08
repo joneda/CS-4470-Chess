@@ -26,13 +26,17 @@ namespace StudentAI
 
             ChessMove bestMove = state.AllPossibleMoves[0];
             int bestValue = int.MinValue;
-            int i; 
+            int i;
+
+            // alpha beta for alpha-beta pruning
+            int alpha = int.MinValue;
+            int beta = int.MaxValue;
 
             for (i = 0; i < state.AllPossibleMoves.Count && !timesUp(); i++)
             {
                 ChessMove move = state.AllPossibleMoves[i];
 
-                int minResult = MinValue(state.GetStateAfterMove(move, true), 1, move.ValueOfMove);
+                int minResult = MinValue(state.GetStateAfterMove(move, true), 1, move.ValueOfMove, alpha, beta);
 
                 if (minResult > bestValue)
                 {
@@ -46,7 +50,7 @@ namespace StudentAI
             return state.GetGameMove(bestMove);
         }
 
-        private int MaxValue(ChessState state, int currentDepth, int moveValue)
+        private int MaxValue(ChessState state, int currentDepth, int moveValue, int alpha, int beta)
         {
             if (currentDepth >= MaxDepth)
             {
@@ -59,13 +63,16 @@ namespace StudentAI
             {
                 value = Math.Max(value,
                                  MinValue(state.GetStateAfterMove(state.AllPossibleMoves[i], true),
-                                     currentDepth + 1, state.AllPossibleMoves[i].ValueOfMove));
+                                     currentDepth + 1, state.AllPossibleMoves[i].ValueOfMove, alpha, beta));
+                if (value >= beta)
+                    return value;
+                alpha = Math.Max(alpha, value);
             }
 
 			return value == int.MinValue ? moveValue : value;
         }
 
-        private int MinValue(ChessState state, int currentDepth, int moveValue)
+        private int MinValue(ChessState state, int currentDepth, int moveValue, int alpha, int beta)
         {
             if (currentDepth >= MaxDepth)
             {
@@ -78,7 +85,10 @@ namespace StudentAI
             {
                 value = Math.Min(value,
                                  MaxValue(state.GetStateAfterMove(state.AllPossibleMoves[i], true),
-                                     currentDepth + 1, -state.AllPossibleMoves[i].ValueOfMove));
+                                     currentDepth + 1, -state.AllPossibleMoves[i].ValueOfMove, alpha, beta));
+                if (value <= alpha)
+                    return value;
+                beta = Math.Min(beta, value);
             }
 
 			return value == int.MinValue ? moveValue : value;
