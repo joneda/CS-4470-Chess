@@ -32,8 +32,24 @@ namespace StudentAI
         };
 
         private ChessColor color;
+        private Func<int[,], ChessMove, int> boardEvaluator;
         private AILoggerCallback log;
         public List<ChessMove> AllPossibleMoves;
+
+        public override string ToString()
+        {
+            string output = string.Empty;
+
+            for (int row = 0; row < Rows; row++)
+            {
+                for (int col = 0; col < Columns; col++)
+                    output += state[col, row].ToString();
+
+                output += "\r\n";
+            }
+
+            return output;
+        }
 
         private ChessState()
         {
@@ -54,6 +70,7 @@ namespace StudentAI
             log(board.ToPartialFenBoard());
 #endif
             this.color = color;
+            this.boardEvaluator = boardEvaluator;
             this.log = log;
 
             Columns = ChessBoard.NumberOfColumns;
@@ -108,55 +125,51 @@ namespace StudentAI
             return gameMove;
         }
 
-        static public ChessState GetStateAfterMove(ChessState currentState, ChessMove move, Func<int[,], ChessMove, int> boardEvaluator, bool swappBoardAndColor)
+        public ChessState GetStateAfterMove(ChessMove move, bool swappBoardAndColor)
         {
-            ChessState newState = new ChessState();
-            newState.Columns = currentState.Columns;
-            newState.Rows = currentState.Rows;
-            newState.log = currentState.log;
-            newState.state = MakeMove(currentState.state, move);
-            if (swappBoardAndColor)
+            ChessState newState = new ChessState
             {
-                if (currentState.color == ChessColor.Black)
-                {
-                   newState.color = ChessColor.White;
-                }
-                else
-                {
-                   newState.color = ChessColor.Black;
-                }
+                Columns = Columns,
+                Rows = Rows,
+                state = (int[,])state.Clone(),
+                color = color,
+                log = log,
+            };
 
-                //Swapp all the peices on the board to reverse the friend vs foe
-                int columnSwapp = ChessBoard.NumberOfColumns;
-                int rowSwapp = ChessBoard.NumberOfRows;
-                for (int i = 0; i < columnSwapp; i++)
-                {
-                    for (int j = 0; j < rowSwapp / 2; j++)
-                    {
-                        int temp = newState.state[i, j];
-                        newState.state[i, j] = newState.state[columnSwapp - 1 - i, rowSwapp - 1 - j];
-                        newState.state[columnSwapp - 1 - i, rowSwapp - 1 - j] = temp;
-                    }
-                }
-            }
-            else
-            {
-                newState.color = currentState.color;
-            }
+            newState.InternalMove(move);
+
+            if (swappBoardAndColor)
+                newState.ChangeSides();
+
             newState.AllPossibleMoves = new MoveGenerator(newState.state, true, boardEvaluator, newState.log).AllPossibleMoves;
+
             return newState;
         }
 
-        static public int[,] MakeMove(int[,] currentState, ChessMove move)
+        private void ChangeSides()
         {
-            int[,] newState = (int[,])currentState.Clone();
+            for (int x = 0; x < Columns; x++)
+            {
+                for (int y = 0; y < Rows / 2; y++)
+                {
+                    int opCol = Columns - x - 1;
+                    int opRow = Rows - y - 1;
+                    int temp = state[x, y];
+                    state[x, y] = -state[opCol, opRow];
+                    state[opCol, opRow] = -temp;
+                }
+            }
 
-            newState[move.To.X, move.To.Y] = newState[move.From.X, move.From.Y];
-            newState[move.From.X, move.From.Y] = Piece.Empty;
-            if (newState[move.To.X, move.To.Y] == Piece.Pawn && move.To.Y == ChessBoard.NumberOfColumns - 1)
-                newState[move.To.X, move.To.Y] = Piece.Queen;
+            color = color == ChessColor.White ? ChessColor.Black : ChessColor.White;
+        }
 
-            return newState;
+        private void InternalMove(ChessMove move)
+        {
+            state[move.To.X, move.To.Y] = state[move.From.X, move.From.Y];
+            state[move.From.X, move.From.Y] = Piece.Empty;
+
+            if (state[move.To.X, move.To.Y] == Piece.Pawn && move.To.Y == Columns - 1)
+                state[move.To.X, move.To.Y] = Piece.Queen;
         }
     }
 }

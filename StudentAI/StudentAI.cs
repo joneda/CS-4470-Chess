@@ -15,7 +15,6 @@ namespace StudentAI
         {
             //random = new Random();
             //solver = new GreedySolver();
-            miniMax = new MiniMax(2, Heuristics.MoreAdvancedAddition);
         }
         #region IChessAI Members that are implemented by the Student
 
@@ -25,7 +24,7 @@ namespace StudentAI
         public string Name
         {
 #if DEBUG
-            get { return "En Passant (Debug)"; }
+            get { return "En Passant MiniMax (Debug)"; }
 #else
             get { return "En Passant"; }
 #endif
@@ -43,11 +42,13 @@ namespace StudentAI
 #if DEBUG
             Log("Determining Next Move");
 #endif
+
+            miniMax = new MiniMax(3, Log, IsMyTurnOver);
             //ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
             ChessMove move = null;
             //while (!IsMyTurnOver())
             //{
-                move = miniMax.MiniMaxMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
+                move = miniMax.MiniMaxMove(new ChessState(board, myColor, Heuristics.SimpleAddition, Log));
             //}
             if (move == null)
                 move = new ChessMove(null, null) { Flag = ChessFlag.Stalemate };

@@ -9,55 +9,77 @@ namespace StudentAI
     class MiniMax
     {
         private int MaxDepth;
-        private Func<int[,], ChessMove, int> boardEvaluator;
-        public MiniMax(int depth, Func<int[,], ChessMove, int> BoardEvaluator)
+        private AIIsMyTurnOverCallback timesUp;
+        private AILoggerCallback log;
+
+        public MiniMax(int depth, AILoggerCallback log, AIIsMyTurnOverCallback timesUp)
         {
+            this.timesUp = timesUp;
+            this.log = log;
             MaxDepth = depth;
-            boardEvaluator = BoardEvaluator;
         }
+
         public ChessMove MiniMaxMove(ChessState state)
         {
             ChessMove bestMove = state.AllPossibleMoves[0];
-            for (int i = 0; i < state.AllPossibleMoves.Count; i++)
+            int bestValue = int.MinValue;
+            int i; 
+
+            for (i = 0; i < state.AllPossibleMoves.Count && !timesUp(); i++)
             {
-                if (MinValue(ChessState.GetStateAfterMove(state, state.AllPossibleMoves[i], boardEvaluator, true), 1,
-                         state.AllPossibleMoves[i]) > bestMove.ValueOfMove)
+                ChessMove move = state.AllPossibleMoves[i];
+
+                int minResult = MinValue(state.GetStateAfterMove(move, true), 1, move.ValueOfMove);
+
+                if (minResult > bestValue)
                 {
-                    bestMove = state.AllPossibleMoves[i];
+                    bestMove = move;
+                    bestValue = minResult;
                 }
             }
+
+            log(string.Format("Processed {0} moves out of {1}", i, state.AllPossibleMoves.Count));
+
             return state.GetGameMove(bestMove);
         }
-        private int MaxValue(ChessState state, int currentDepth, ChessMove previousMove)
+
+        private int MaxValue(ChessState state, int currentDepth, int moveValue)
         {
             if (currentDepth >= MaxDepth)
             {
-                return previousMove.ValueOfMove;
+                return moveValue;
             }
+
             int value = int.MinValue;
-            for (int i = 0; i < state.AllPossibleMoves.Count; i++)
+
+            for (int i = 0; i < state.AllPossibleMoves.Count && !timesUp(); i++)
             {
                 value = Math.Max(value,
                                  MinValue(
-                                     ChessState.GetStateAfterMove(state, state.AllPossibleMoves[i], boardEvaluator, true),
-                                     currentDepth + 1, state.AllPossibleMoves[i]));
+                                     state.GetStateAfterMove(state.AllPossibleMoves[i], true),
+                                     currentDepth + 1, state.AllPossibleMoves[i].ValueOfMove));
             }
+
             return value;
         }
-        private int MinValue(ChessState state, int currentDepth, ChessMove previousMove)
+
+        private int MinValue(ChessState state, int currentDepth, int moveValue)
         {
             if (currentDepth >= MaxDepth)
             {
-                return previousMove.ValueOfMove;
+                return moveValue;
             }
+
             int value = int.MaxValue;
-            for (int i = 0; i < state.AllPossibleMoves.Count; i++)
+
+            for (int i = 0; i < state.AllPossibleMoves.Count && !timesUp(); i++)
             {
                 value = Math.Min(value,
                                  MaxValue(
-                                     ChessState.GetStateAfterMove(state, state.AllPossibleMoves[i], boardEvaluator, true),
-                                     currentDepth + 1, state.AllPossibleMoves[i]));
+                                     state.GetStateAfterMove(state.AllPossibleMoves[i], true),
+                                     currentDepth + 1, -state.AllPossibleMoves[i].ValueOfMove));
             }
+
             return value;
         }
 

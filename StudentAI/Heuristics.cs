@@ -77,11 +77,11 @@ namespace StudentAI
         {
             int result = 0;
 
-            if (move.Flag == ChessFlag.Check)
-                result += 1;
+            //if (move.Flag == ChessFlag.Check)
+            //    result += 1;
 
-            if (move.Flag == ChessFlag.Checkmate)
-                result += 5000;
+            //if (move.Flag == ChessFlag.Checkmate)
+            //    result += 5000;
             
             for (int x = 0; x < state.GetLength(0); x++)
             {

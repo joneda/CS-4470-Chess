@@ -62,9 +62,22 @@ namespace StudentAI
             }
         }
 
+        private int[,] GetStateAfterMove(ChessMove move)
+        {
+            int[,] newState = (int[,])state.Clone();
+
+            newState[move.To.X, move.To.Y] = newState[move.From.X, move.From.Y];
+            newState[move.From.X, move.From.Y] = Piece.Empty;
+
+            if (newState[move.To.X, move.To.Y] == Piece.Pawn && move.To.Y == Columns - 1)
+                newState[move.To.X, move.To.Y] = Piece.Queen;
+
+            return newState;
+        }
+
         private void AddMove(ChessMove move)
         {
-            int[,] stateAfterMove = ChessState.MakeMove(state, move);
+            int[,] stateAfterMove = GetStateAfterMove(move);
 
             // If we're in check, then the move is illegal
             if (InCheck(stateAfterMove, false))
