@@ -43,16 +43,21 @@ namespace StudentAI
             Log("Determining Next Move");
 #endif
 
-            miniMax = new MiniMax(3, Log, IsMyTurnOver);
+            miniMax = new MiniMax(Log, IsMyTurnOver);
             //ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
+            ChessMove previous = null;
             ChessMove move = null;
-            //while (!IsMyTurnOver())
-            //{
-                move = miniMax.MiniMaxMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
-            //}
-            if (move == null)
-                move = new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
-            return move;
+            int depth = 1;
+
+            while (!IsMyTurnOver())
+            {
+                previous = move;
+                move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
+            }
+
+            Log("Max Depth: " + depth);
+
+            return previous ?? move ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
         }
 
         /// <summary>
