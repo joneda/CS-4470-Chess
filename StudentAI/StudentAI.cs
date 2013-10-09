@@ -42,8 +42,14 @@ namespace StudentAI
 #if DEBUG
             Log("Determining Next Move");
 #endif
+            miniMax = new MiniMax(Log, () =>
+            {
+                if (IsMyTurnOver == null)
+                    return false;
+                else
+                    return IsMyTurnOver();
+            });            
 
-            miniMax = new MiniMax(Log, IsMyTurnOver);
             //ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
             ChessMove previous = null;
             ChessMove move = null;

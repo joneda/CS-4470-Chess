@@ -8,10 +8,10 @@ namespace StudentAI
 {
     class MiniMax
     {
-        private AIIsMyTurnOverCallback timesUp;
+        private Func<bool> timesUp;
         private AILoggerCallback log;
 
-        public MiniMax(AILoggerCallback log, AIIsMyTurnOverCallback timesUp)
+        public MiniMax(AILoggerCallback log, Func<bool> timesUp)
         {
             this.timesUp = timesUp;
             this.log = log;
