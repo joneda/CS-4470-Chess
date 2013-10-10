@@ -101,8 +101,7 @@ namespace StudentAI
                 }
             }
 
-            MoveGenerator generator = new MoveGenerator(state, true, boardEvaluator, log);
-            AllPossibleMoves = generator.AllPossibleMoves;
+            AllPossibleMoves = MoveGenerator.GetAllMoves(state, true, boardEvaluator, log);
         }
 
         /// <summary>
@@ -142,7 +141,7 @@ namespace StudentAI
             if (swappBoardAndColor)
                 newState.ChangeSides();
 
-            newState.AllPossibleMoves = new MoveGenerator(newState.state, true, boardEvaluator, newState.log).AllPossibleMoves;
+            newState.AllPossibleMoves = MoveGenerator.GetAllMoves(newState.state, true, boardEvaluator, newState.log);
 
             return newState;
         }

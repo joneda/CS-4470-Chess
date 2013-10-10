@@ -8,6 +8,9 @@ namespace StudentAI
     /// </summary>
     internal static class Heuristics
     {
+        private static Queue<ChessMove> previousMoves = new Queue<ChessMove>();
+        private static int duplicateMoveValue = 1;
+        private static int duplicateMoveMax = 4;
         private static readonly Dictionary<int, int> pieceValue = new Dictionary<int, int>
         {
             {-Piece.King, -10},
@@ -61,7 +64,19 @@ namespace StudentAI
                         result += pieceValue[piece];
                 }
             }
-
+            ChessMove[] previousMovesArray = previousMoves.ToArray();
+            for (int i = 0; i < previousMovesArray.Length; i++)
+            {
+                if (previousMovesArray[i] == move)
+                {
+                    result -= duplicateMoveValue;
+                }
+            }
+            previousMoves.Enqueue(move);
+            if (previousMoves.Count > duplicateMoveMax)
+            {
+                previousMoves.Dequeue();
+            }
             return result;
         }
 

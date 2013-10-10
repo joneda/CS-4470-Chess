@@ -10,59 +10,34 @@ namespace StudentAI
     /// </summary>
     internal class MoveGenerator
     {
-        private int[,] state;
-        private int Columns;
-        private int Rows;
-        private bool calculateCheckMate;
-        private Func<int[,], ChessMove, int> boardEvaluator;
-        private AILoggerCallback log;
-
         /// <summary>
-        /// The list of all possible moves.
-        /// </summary>
-        public List<ChessMove> AllPossibleMoves = new List<ChessMove>();
-
-        /// <summary>
-        /// Constructor. Initializes the object by calculating all possible moves
+        /// Static method that will return a list of all the possible moves.
         /// </summary>
         /// <param name="state">The current board state in the ChessState (friend/foe) board style</param>
         /// <param name="calculateCheckMate">Checkmate will only be calculated if this is true</param>
         /// <param name="boardEvaluator">The heuristc method to use in determining move value</param>
         /// <param name="log">Callback method that will be used for logging</param>
-        public MoveGenerator(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log)
+        public static List<ChessMove> GetAllMoves(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log)
         {
-#if DEBUG
-            log("Move Generator: " + calculateCheckMate.ToString());
-#endif
-
-            this.state = state;
-            this.calculateCheckMate = calculateCheckMate;
-            this.boardEvaluator = boardEvaluator;
-            this.log = log;
-
-            Columns = state.GetLength(0);
-            Rows = state.GetLength(1);
-
-            DetermineMoves();
-
-#if DEBUG
-            log("End Move Generator: " + calculateCheckMate.ToString());
-#endif
+            List<ChessMove> AllPossibleMoves = new List<ChessMove>();
+            int Columns = state.GetLength(0);
+            int Rows = state.GetLength(1);
+            DetermineMoves(state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
+            return AllPossibleMoves;
         }
-
-        private void DetermineMoves()
+        private static void DetermineMoves(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
         {
             for (int row = 0; row < Rows; row++)
             {
                 for (int column = 0; column < Columns; column++)
                 {
                     if (state[column, row] > 0)
-                        GenerateMoves(state[column, row], column, row);
+                        GenerateMoves(state[column, row], column, row, state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                 }
             }
         }
 
-        private int[,] GetStateAfterMove(ChessMove move)
+        private static int[,] GetStateAfterMove(ChessMove move, int[,] state, int Columns)
         {
             int[,] newState = (int[,])state.Clone();
 
@@ -75,26 +50,24 @@ namespace StudentAI
             return newState;
         }
 
-        private void AddMove(ChessMove move)
+        private static void AddMove(ChessMove move, int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
         {
-            int[,] stateAfterMove = GetStateAfterMove(move);
+            int[,] stateAfterMove = GetStateAfterMove(move, state, Columns);
 
             // If we're in check, then the move is illegal
-            if (InCheck(stateAfterMove, false))
+            if (InCheck(stateAfterMove, false, log, Columns, Rows))
                 return;
 
-            if (InCheck(stateAfterMove, true))
+            if (InCheck(stateAfterMove, true, log, Columns, Rows))
             {
                 move.Flag = ChessFlag.Check;
 
                 if (calculateCheckMate)
                 {
-                    int[,] enemyStateAfterMove = GetEnemyState(stateAfterMove);
-
-                    MoveGenerator enemyMoveGenerator = new MoveGenerator(enemyStateAfterMove, false, null, log);
+                    int[,] enemyStateAfterMove = GetEnemyState(stateAfterMove, Columns, Rows);
 
                     // if there are no possible moves for the enemy, they are in checkmate
-                    if (enemyMoveGenerator.AllPossibleMoves.Count < 1)
+                    if (MoveGenerator.GetAllMoves(enemyStateAfterMove, false, null, log).Count < 1)
                         move.Flag = ChessFlag.Checkmate;
                 }
             }
@@ -109,7 +82,7 @@ namespace StudentAI
             AllPossibleMoves.Add(move);
         }
 
-        private int[,] GetEnemyState(int[,] state)
+        private static int[,] GetEnemyState(int[,] state, int Columns, int Rows)
         {
             int[,] enemyState = new int[Columns, Rows];
 
@@ -124,7 +97,7 @@ namespace StudentAI
             return enemyState;
         }
 
-        private void GenerateMoves(int statePiece, int column, int row)
+        private static void GenerateMoves(int statePiece, int column, int row, int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, AILoggerCallback log, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
         {
             switch (statePiece)
             {
@@ -135,24 +108,24 @@ namespace StudentAI
                         if (row == 1)
                         {
                             if (state[column, row + 1] == Piece.Empty)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 1)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                             if (state[column, row + 1] == Piece.Empty && state[column, row + 2] == Piece.Empty)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 2)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 2)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         }
                         // if greater than row 1, pawn can move forward to row + 1
                         else if (row > 1)
                         {
                             if (state[column, row + 1] == Piece.Empty)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 1)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         }
                         // if there is an opponent piece on either [row + 1, column - 1] or [row + 1, column + 1], black can kill that piece
                         if (column + 1 < Columns && row + 1 < Rows && state[column + 1, row + 1] < Piece.Empty)
                         {
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row + 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         }
                         if (column - 1 >= 0 && row + 1 < Rows && state[column - 1, row + 1] < Piece.Empty)
                         {
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row + 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         }
                         // if pawn is on row 6, moving to row 7 will turn it into a queen (or any other valid piece it wants to be besides king or pawn)
                         break;
@@ -163,28 +136,28 @@ namespace StudentAI
                     {
                         // down 2 right 1
                         if (row < Rows - 2 && column < Columns - 1 && !(state[column + 1, row + 2] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row + 2)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row + 2)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         // down 2 left 1
                         if (row < Rows - 2 && column > 0 && !(state[column - 1, row + 2] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row + 2)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row + 2)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         // up 2 right 1
                         if (row > 1 && column < Columns - 1 && !(state[column + 1, row - 2] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row - 2)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row - 2)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         // up 2 left 1
                         if (row > 1 && column > 0 && !(state[column - 1, row - 2] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row - 2)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row - 2)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         // down 1 right 2
                         if (row < Rows - 1 && column < Columns - 2 && !(state[column + 2, row + 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 2, row + 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 2, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         // down 1 left 2
                         if (row < Rows - 1 && column > 1 && !(state[column - 2, row + 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 2, row + 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 2, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         // up 1 right 2
                         if (row > 0 && column < Columns - 2 && !(state[column + 2, row - 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 2, row - 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 2, row - 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         // up 1 left 2
                         if (row > 0 && column > 1 && !(state[column - 2, row - 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 2, row - 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 2, row - 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                         break;
                     }
@@ -201,7 +174,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -216,7 +189,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -231,7 +204,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -246,7 +219,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -267,7 +240,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, row] < Piece.Empty)
@@ -282,7 +255,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, row] < Piece.Empty)
@@ -297,7 +270,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[column, r] < Piece.Empty)
@@ -312,7 +285,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[column, r] < Piece.Empty)
@@ -333,7 +306,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -348,7 +321,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -363,7 +336,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -378,7 +351,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, r] < Piece.Empty)
@@ -395,7 +368,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, row] < Piece.Empty)
@@ -410,7 +383,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(c, row)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[c, row] < Piece.Empty)
@@ -425,7 +398,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[column, r] < Piece.Empty)
@@ -440,7 +413,7 @@ namespace StudentAI
                                 keepgoing = false;
 
                             if (keepgoing)
-                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)));
+                                AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, r)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
 
                             // If the new location was an enemy piece, we can't keep going beyond it
                             if (state[column, r] < Piece.Empty)
@@ -464,28 +437,28 @@ namespace StudentAI
                             left = false;
 
                         if (down && !(state[column, row + 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         if (up && !(state[column, row - 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row - 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column, row - 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         if (right && !(state[column + 1, row] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         if (left && !(state[column - 1, row] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         if (right && down && !(state[column + 1, row + 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row + 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         if (right && up && !(state[column + 1, row - 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row - 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column + 1, row - 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         if (left && down && !(state[column - 1, row + 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row + 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row + 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         if (left && up && !(state[column - 1, row - 1] > Piece.Empty))
-                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row - 1)));
+                            AddMove(new ChessMove(new ChessLocation(column, row), new ChessLocation(column - 1, row - 1)), state, calculateCheckMate, boardEvaluator, log, Columns, Rows, AllPossibleMoves);
                         break;
                     }
                 #endregion
             }
         }
 
-        private ChessLocation LocatePiece(int[,] stateToCheck, int piece)
+        private static ChessLocation LocatePiece(int[,] stateToCheck, int piece, int Columns, int Rows)
         {
             for (int row = 0; row < Rows; row++)
             {
@@ -499,11 +472,11 @@ namespace StudentAI
             return null;
         }
 
-        private bool InCheck(int[,] stateToCheck, bool enemy)
+        private static bool InCheck(int[,] stateToCheck, bool enemy, AILoggerCallback log, int Columns, int Rows)
         {
             int kingToCheck = enemy ? -Piece.King : Piece.King;
 
-            ChessLocation kingLocation = LocatePiece(stateToCheck, kingToCheck);
+            ChessLocation kingLocation = LocatePiece(stateToCheck, kingToCheck, Columns, Rows);
 
             if (kingLocation == null)
             {
