@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UvsChess;
 
@@ -10,6 +11,9 @@ namespace StudentAI
 
         //private GreedySolver solver;
         private MiniMax miniMax;
+        public static Queue<ChessMove> previousMoves = new Queue<ChessMove>();
+        public static int duplicateMoveValue = 1;
+        private static int duplicateMoveMax = 6;
 
         public StudentAI()
         {
@@ -60,10 +64,15 @@ namespace StudentAI
                 previous = move;
                 move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
             }
-
             Log("Max Depth: " + depth);
 
-            return previous ?? move ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
+            if (previousMoves.Count > duplicateMoveMax)
+            {
+                previousMoves.Dequeue();
+            }
+            ChessMove bestMove = previous ?? move ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
+            previousMoves.Enqueue(bestMove);
+            return bestMove;
         }
 
         /// <summary>
