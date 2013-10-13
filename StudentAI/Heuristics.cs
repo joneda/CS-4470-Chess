@@ -378,13 +378,6 @@ namespace StudentAI
             return result;
         }
 
-       /* private static bool CheckForStaleMate(int[,] state)
-        {
-            if (MoveGenerator.GetAllMoves(MoveGenerator.GetEnemyState(state, ChessBoard.NumberOfColumns, ChessBoard.NumberOfRows), false, null, null).Count < 1)
-                return true;
-            return false;
-        }*/
-
         #region Heuristics not currently in use
 
         /// <summary>
