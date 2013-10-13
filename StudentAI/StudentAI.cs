@@ -46,33 +46,41 @@ namespace StudentAI
 #if DEBUG
             Log("Determining Next Move");
 #endif
-            miniMax = new MiniMax(Log, () =>
-            {
-                if (IsMyTurnOver == null)
-                    return false;
-                else
-                    return IsMyTurnOver();
-            });            
 
-            //ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
-            ChessMove previous = null;
-            ChessMove move = null;
-            int depth = 1;
 
-            while (!IsMyTurnOver())
-            {
-                previous = move;
-                move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
-            }
-            Log("Max Depth: " + depth);
+                miniMax = new MiniMax(Log, () =>
+                {
+                    if (IsMyTurnOver == null)
+                        return false;
+                    else
+                        return IsMyTurnOver();
+                });
 
-            if (previousMoves.Count > duplicateMoveMax)
-            {
-                previousMoves.Dequeue();
-            }
-            ChessMove bestMove = previous ?? move ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
-            previousMoves.Enqueue(bestMove);
-            return bestMove;
+                //ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
+                ChessMove previous = null;
+                ChessMove move = null;
+                int depth = 1;
+                
+                while (!IsMyTurnOver())
+                {
+                    previous = move;
+                    if (Heuristics.IsEndgame(board, myColor))
+                    {
+                        GreedySolver g = new GreedySolver();
+                        move = g.GetMove(new ChessState(board, myColor, Heuristics.Endgame, Log));                        
+                    }
+                    else
+                        move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
+                }
+                Log("Max Depth: " + depth);
+
+                if (previousMoves.Count > duplicateMoveMax)
+                {
+                    previousMoves.Dequeue();
+                }
+                ChessMove bestMove = previous ?? move ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
+                previousMoves.Enqueue(bestMove);
+                return bestMove;
         }
 
         /// <summary>
