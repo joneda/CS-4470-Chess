@@ -39,6 +39,7 @@ namespace StudentAI
                     bestMove = move;
                     bestValue = result;
                 }
+                alpha = Math.Max(alpha, result);
             }
 
             //log(string.Format("Processed {0} move(s) out of {1}. Move: {2} value: {3}", i, state.AllPossibleMoves.Count, state.GetGameMove(bestMove).ToString(), bestValue) );
