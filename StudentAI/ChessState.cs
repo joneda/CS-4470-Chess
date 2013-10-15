@@ -124,7 +124,7 @@ namespace StudentAI
             return gameMove;
         }
 
-        public ChessState GetStateAfterMove(ChessMove move, bool swappBoardAndColor)
+        public ChessState GetStateAfterMove(ChessMove move, bool swappBoardAndColor, bool maxFirst)
         {
             ChessState newState = new ChessState
             {
@@ -142,7 +142,16 @@ namespace StudentAI
                 newState.ChangeSides();
 
             newState.AllPossibleMoves = MoveGenerator.GetAllMoves(newState.state, true, boardEvaluator, newState.log);
-
+            if (maxFirst)
+            {
+                // Sort Max first
+                newState.AllPossibleMoves.Sort((x, y) => y.ValueOfMove.CompareTo(x.ValueOfMove));
+            }
+            else
+            {
+                // Sort Min first
+                newState.AllPossibleMoves.Sort((x, y) => x.ValueOfMove.CompareTo(y.ValueOfMove));
+            }
             return newState;
         }
 

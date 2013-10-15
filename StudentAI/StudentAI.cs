@@ -13,7 +13,7 @@ namespace StudentAI
         private MiniMax miniMax;
         public static Queue<ChessMove> previousMoves = new Queue<ChessMove>();
         public static int duplicateMoveValue = 1;
-        private static int duplicateMoveMax = 6;
+        private static int duplicateMoveMax = 10;
 
         public StudentAI()
         {
@@ -66,13 +66,13 @@ namespace StudentAI
                     previous = move;
                     if (Heuristics.IsEndgame(board, myColor))
                     {
-                        GreedySolver g = new GreedySolver();
-                        move = g.GetMove(new ChessState(board, myColor, Heuristics.Endgame, Log));                        
+                        //GreedySolver g = new GreedySolver();
+                       // move = g.GetMove(new ChessState(board, myColor, Heuristics.Endgame, Log));   
+                        move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.Endgame, Log));
                     }
                     else
                         move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
                 }
-                Log("Max Depth: " + depth);
 
                 if (previousMoves.Count > duplicateMoveMax)
                 {
@@ -80,6 +80,8 @@ namespace StudentAI
                 }
                 ChessMove bestMove = previous ?? move ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
                 previousMoves.Enqueue(bestMove);
+                Log("Chosen Move: " + bestMove.ToString());
+                Log("Max Depth: " + depth);
                 return bestMove;
         }
 

@@ -155,7 +155,7 @@ namespace StudentAI
                 else
                 {
                     if (MoveGenerator.InDanger(state, new ChessLocation(rCol, rRow)))
-                        result = int.MinValue;
+                        result = int.MinValue + 1;
                     // If our king is nearing their king and our Rook/Queen is not by our king, so move it closer to our king
                     else if (Math.Abs(ekCol - kCol) == 2 || Math.Abs(ekRow - kRow) == 2 && ((Math.Abs(kCol - rCol) == 1) || (Math.Abs(kRow - rRow) == 1)))
                         result += 1500;
