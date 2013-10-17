@@ -38,9 +38,9 @@ namespace StudentAI
         public string Name
         {
 #if DEBUG
-            get { return "En Passant (Debug)"; }
+            get { return "En Passant - MiniMax (Debug)"; }
 #else
-            get { return "En Passant daivd"; }
+            get { return "En Passant - MiniMax"; }
 #endif
         }
 
