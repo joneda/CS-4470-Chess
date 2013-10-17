@@ -7,18 +7,28 @@ namespace StudentAI
 {
     public class StudentAI : IChessAI
     {
-        //private Random random;
-
-        //private GreedySolver solver;
         private MiniMax miniMax;
-        public static Queue<ChessMove> previousMoves = new Queue<ChessMove>();
-        public static int duplicateMoveValue = 1;
-        private static int duplicateMoveMax = 10;
 
         public StudentAI()
         {
-            //random = new Random();
-            //solver = new GreedySolver();
+            Action<string> logAction = (message) => 
+                {
+                    if (Log != null)
+                        Log(message);
+                };
+
+            Func<bool> timesUpCheck = () =>
+                {
+                    if (IsMyTurnOver == null)
+                        return false;
+                    else
+                        return IsMyTurnOver();
+                };
+
+            MoveGenerator.Log = logAction;
+
+            int initialDepth = 2;
+            miniMax = new MiniMax(initialDepth, logAction, timesUpCheck);
         }
         #region IChessAI Members that are implemented by the Student
 
@@ -28,9 +38,9 @@ namespace StudentAI
         public string Name
         {
 #if DEBUG
-            get { return "En Passant MiniMax (Debug)"; }
+            get { return "En Passant (Debug)"; }
 #else
-            get { return "En Passant"; }
+            get { return "En Passant daivd"; }
 #endif
         }
 
@@ -46,43 +56,14 @@ namespace StudentAI
 #if DEBUG
             Log("Determining Next Move");
 #endif
+                Func<int[,], ChessMove, int> boardEvaluator = Heuristics.MoreAdvancedAddition;
 
-
-                miniMax = new MiniMax(Log, () =>
-                {
-                    if (IsMyTurnOver == null)
-                        return false;
-                    else
-                        return IsMyTurnOver();
-                });
-
-                //ChessMove move = solver.GetMove(new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
-                ChessMove previous = null;
-                ChessMove move = null;
-                int depth = 1;
+                if (Heuristics.IsEndgame(board, myColor))
+                    boardEvaluator = Heuristics.Endgame;
                 
-                while (!IsMyTurnOver())
-                {
-                    previous = move;
-                    if (Heuristics.IsEndgame(board, myColor))
-                    {
-                        //GreedySolver g = new GreedySolver();
-                       // move = g.GetMove(new ChessState(board, myColor, Heuristics.Endgame, Log));   
-                        move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.Endgame, Log));
-                    }
-                    else
-                        move = miniMax.MiniMaxMove(++depth, new ChessState(board, myColor, Heuristics.MoreAdvancedAddition, Log));
-                }
+                ChessMove move = miniMax.MiniMaxMove(board, myColor, boardEvaluator);
 
-                if (previousMoves.Count > duplicateMoveMax)
-                {
-                    previousMoves.Dequeue();
-                }
-                ChessMove bestMove = previous ?? move ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
-                previousMoves.Enqueue(bestMove);
-                Log("Chosen Move: " + bestMove.ToString());
-                Log("Max Depth: " + depth);
-                return bestMove;
+                return move;
         }
 
         /// <summary>
@@ -103,18 +84,20 @@ namespace StudentAI
 #if DEBUG
             Log("Generating Opponent's Moves");
 #endif
-            ChessState state = new ChessState(boardBeforeMove, colorOfPlayerMoving, null, Log);
 
-            foreach (ChessMove move in state.AllPossibleMoves)
+            int[,] state = SimpleState.GetSimpleState(boardBeforeMove, colorOfPlayerMoving);
+            List<ChessMove> allPossibleMoves = MoveGenerator.GetAllMoves(state, true, null);
+
+            foreach (ChessMove move in allPossibleMoves)
             {
-                if (state.GetGameMove(move) == moveToCheck)
+                if (SimpleState.GetGameMove(move, colorOfPlayerMoving) == moveToCheck)
                 {
                     return true;
                 }
             }
 
-            ChessMove nearMatch = state.AllPossibleMoves
-                .Select(m => state.GetGameMove(m))
+            ChessMove nearMatch = allPossibleMoves
+                .Select(m => SimpleState.GetGameMove(m, colorOfPlayerMoving))
                 .Where(m => m.From == moveToCheck.From && m.To == moveToCheck.To).FirstOrDefault();
             
             if (nearMatch != null)

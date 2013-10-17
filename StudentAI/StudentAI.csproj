@@ -15,7 +15,7 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -54,12 +54,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChessState.cs" />
-    <Compile Include="GreedySolver.cs" />
     <Compile Include="Heuristics.cs" />
     <Compile Include="MiniMax.cs" />
     <Compile Include="MoveGenerator.cs" />
-    <Compile Include="Piece.cs" />
+    <Compile Include="SimpleState.cs" />
     <Compile Include="StudentAI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

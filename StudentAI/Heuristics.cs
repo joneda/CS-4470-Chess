@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UvsChess;
-using System;
 
 namespace StudentAI
 {
@@ -9,25 +9,26 @@ namespace StudentAI
     /// </summary>
     internal static class Heuristics
     {
-        
         private static readonly Dictionary<int, int> pieceValue = new Dictionary<int, int>
         {
-            {-Piece.King, -10},
-            {-Piece.Queen, -9},
-            {-Piece.Rook, -5},
-            {-Piece.Bishop, -3},
-            {-Piece.Knight, -3},
-            {-Piece.Pawn, -1},
-            {Piece.Empty, 0 },
-            {Piece.Pawn, 1 },
-            {Piece.Knight, 3},
-            {Piece.Bishop, 3},
-            {Piece.Rook, 5},
-            {Piece.Queen, 9},
-            {Piece.King, 10},
+            {-SimpleState.King, -10},
+            {-SimpleState.Queen, -9},
+            {-SimpleState.Rook, -5},
+            {-SimpleState.Bishop, -3},
+            {-SimpleState.Knight, -3},
+            {-SimpleState.Pawn, -1},
+            {SimpleState.Empty, 0 },
+            {SimpleState.Pawn, 1 },
+            {SimpleState.Knight, 3},
+            {SimpleState.Bishop, 3},
+            {SimpleState.Rook, 5},
+            {SimpleState.Queen, 9},
+            {SimpleState.King, 10},
         };
 
         /// <summary>
+        /// This is our general heuristic that is used during most game-play.
+        /// 
         /// Uses a value system to determine the worth of each piece. 
         /// Gives precedence to check if the move doesn't put the piece in danger of being killed. 
         /// Moves pawns foward if there is a chance of queen promotion.
@@ -63,19 +64,16 @@ namespace StudentAI
                         result += pieceValue[piece];
                 }
             }
-            ChessMove[] previousMovesArray = StudentAI.previousMoves.ToArray();
-            for (int i = 0; i < previousMovesArray.Length; i++)
-            {
-                if (previousMovesArray[i] == move)
-                {
-                    result -= StudentAI.duplicateMoveValue;
-                }
-            }
             
             return result;
         }
 
-        // Only endgame if its just our king, their king, and we have a single rook or queen
+        /// <summary>
+        /// Returns true if its just our king, their king, and we have a single rook or queen
+        /// </summary>
+        /// <param name="board">The board to evaluate</param>
+        /// <param name="myColor">The player's color</param>
+        /// <returns>True if we're in an end-game state otherwise false</returns>
         public static bool IsEndgame(ChessBoard board, ChessColor myColor)
         {
             int numberOfPieces = 0;
@@ -100,6 +98,12 @@ namespace StudentAI
                 return false;
         }
 
+        /// <summary>
+        /// This is an end-game heuristic used only when we're down to only a few select pieces
+        /// </summary>
+        /// <param name="state">The state to generate the heursitic for</param>
+        /// <param name="move">The state move that was made to create this new state</param>
+        /// <returns>Numeric value indicating a value for this state</returns>
         public static int Endgame(int[,] state, ChessMove move)
         {
 
@@ -115,20 +119,20 @@ namespace StudentAI
                 {
                     switch (state[column, row])
                     {
-                        case -Piece.King:
+                        case -SimpleState.King:
                             ekCol = column;
                             ekRow = row;
                             break;
-                        case Piece.King:
+                        case SimpleState.King:
                             kCol = column;
                             kRow = row;
                             break;
-                        case Piece.Rook:
+                        case SimpleState.Rook:
                             rCol = column;
                             rRow = row;
                             isQueen = false;
                             break;
-                        case Piece.Queen:
+                        case SimpleState.Queen:
                             rCol = column;
                             rRow = row;
                             break;
@@ -378,92 +382,14 @@ namespace StudentAI
             return result;
         }
 
-        #region Heuristics not currently in use
-
-        /// <summary>
-        /// Very basic Heuristic that just adds up the numeric state values of each piece. Some allowance is made for check and checkmate as well
-        /// </summary>
-        /// <param name="state">The state to generate the heursitic for</param>
-        /// <param name="move">The state move that was made to create this new state</param>
-        /// <returns>Numeric value indicating a value for this state</returns>
-        public static int SimpleAddition(int[,] state, ChessMove move)
-        {
-            int result = 0;
-
-            //if (move.Flag == ChessFlag.Check)
-            //    result += 1;
-
-            //if (move.Flag == ChessFlag.Checkmate)
-            //    result += 5000;
-            
-            for (int x = 0; x < state.GetLength(0); x++)
-            {
-                for (int y = 0; y < state.GetLength(1); y++)
-                {
-                    result += state[x,y];
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Adds on to the SimpleAddition Heuristic by checking if the piece that is being moved is in danger of being killed. If it
-        /// is, then the state value of the piece is removed from the result.
-        /// </summary>
-        /// <param name="state">The state to generate the heursitic for</param>
-        /// <param name="move">The state move that was made to create this new state</param>
-        /// <returns>Numeric value indicating a value for this state</returns>
-        public static int DontGoToDanger(int[,] state, ChessMove move)
-        {
-            int result = SimpleAddition(state, move);
-
-            if (MoveGenerator.InDanger(state, move.To))
-                result -= state[move.To.X, move.To.Y];
-
-            return result;
-        }
-
-        /// <summary>
-        /// Only counts friendly pieces that are not in danger of being killed
-        /// </summary>
-        /// <param name="state">The state to generate the heursitic for</param>
-        /// <param name="move">The state move that was made to create this new state</param>
-        /// <returns>Numeric value indicating a value for this state</returns>
-        public static int Cautious(int[,] state, ChessMove move)
-        {
-            int result = 0;
-
-            if (move.Flag == ChessFlag.Check)
-                result += 1;
-
-            if (move.Flag == ChessFlag.Checkmate)
-                result += 5000;
-
-            for (int x = 0; x < state.GetLength(0); x++)
-            {
-                for (int y = 0; y < state.GetLength(1); y++)
-                {
-                    int piece = state[x, y];
-
-                    if (piece <= 0 || !MoveGenerator.InDanger(state, new ChessLocation(x, y)))
-                        result += piece;
-                }
-            }
-
-            return result;
-        }
-
-        #endregion Heuristics not currently in use
-
         private static bool shouldAttemptToQueenPawn(int[,] state, ChessLocation pawnLocation)
         {
-            if (state[pawnLocation.X, pawnLocation.Y] == Piece.Pawn)
+            if (state[pawnLocation.X, pawnLocation.Y] == SimpleState.Pawn)
                 return false;
 
             for (int row = pawnLocation.Y + 1; row < state.GetLength(1); row++)
             {
-                if (state[pawnLocation.X, row] != Piece.Empty)
+                if (state[pawnLocation.X, row] != SimpleState.Empty)
                     return false;
             }
 
