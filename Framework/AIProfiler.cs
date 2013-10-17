@@ -236,10 +236,10 @@ namespace UvsChess
 
                     output.Add(sb.ToString());
 
-                    int totalNodes = 0;
+                    long totalNodes = 0;
                     for (int curProfiledMethod = 0; curProfiledMethod < TagNames.Length; curProfiledMethod++)
                     {
-                        int total = 0;
+                        long total = 0;
                         output.Add(WriteProfileLine("AI", Turns, curProfiledMethod, TagNames, ref total));
 
                         if ((MinisProfilerTag != -1) &&
@@ -259,7 +259,7 @@ namespace UvsChess
 
                     for (int curFxProfiledMethod = 0; curFxProfiledMethod < FxKeyNames.Length; curFxProfiledMethod++)
                     {
-                        int total = 0;
+                        long total = 0;
                         output.Add(WriteProfileLine("Fx", FxTurns, curFxProfiledMethod, FxKeyNames, ref total));
                     }
                 }
@@ -277,7 +277,7 @@ namespace UvsChess
         /// <param name="keyNames">all of the AI method names that map to the method keys</param>
         /// <param name="total">This contains the total number of method calls for all turns</param>
         /// <returns>a csv formatted line of profiling data</returns>
-        private string WriteProfileLine(string fxOrAi, List<int[]> info, int currentKey, string[] keyNames, ref int total)
+        private string WriteProfileLine(string fxOrAi, List<int[]> info, int currentKey, string[] keyNames, ref long total)
         {
             StringBuilder sb = new StringBuilder();
             for (int curTurn = 0; curTurn < info.Count; curTurn++)
