@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework", "Framework\Fram
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleAI", "ExampleAI\ExampleAI.csproj", "{5B942207-A326-4144-850C-CA867E22721A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnPassantAI", "StudentAI\EnPassantAI.csproj", "{5B942208-A326-4144-850C-CA867E22721A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnPassantAI", "EnPassantAI\EnPassantAI.csproj", "{5B942208-A326-4144-850C-CA867E22721A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
