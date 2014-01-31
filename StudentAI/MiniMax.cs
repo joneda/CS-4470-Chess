@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UvsChess;
 
-namespace StudentAI
+namespace EnPassantAI
 {
     /// <summary>
     /// MiniMax with Alpha Beta Pruning
@@ -13,6 +13,7 @@ namespace StudentAI
         private Func<bool> timesUp;
         private Action<string> log;
         private Func<int[,], ChessMove, int> boardEvaluator;
+        private MoveGenerator moveGenerator;
 
         private Queue<ChessMove> previousMoves = new Queue<ChessMove>();
         private int selectedMoveIndex = 0;
@@ -23,8 +24,9 @@ namespace StudentAI
         /// <param name="initialDepth">The depth to start iterative deepening from</param>
         /// <param name="log">Callback method for writing log messages</param>
         /// <param name="timesUp">Callback method that returns true when we must return a move</param>
-        public MiniMax(int initialDepth, Action<string> log, Func<bool> timesUp)
+        public MiniMax(MoveGenerator moveGenerator, int initialDepth, Action<string> log, Func<bool> timesUp)
         {
+            this.moveGenerator = moveGenerator;
             this.initialDepth = initialDepth;
             this.timesUp = timesUp;
             this.log = log;
@@ -42,22 +44,22 @@ namespace StudentAI
             this.boardEvaluator = boardEvaluator;
 
             ChessMove selectedMove = null;
-			List<ChessMove> bestMoves = null;
+            List<ChessMove> bestMoves = null;
             int depth = initialDepth;
 
             int[,] state = SimpleState.GetSimpleState(board, playerColor);
-            List<ChessMove> allPossibleMoves = MoveGenerator.GetAllMoves(state, true, boardEvaluator);
-            
-            while(!timesUp() && allPossibleMoves.Count > 0)
+            List<ChessMove> allPossibleMoves = moveGenerator.GetAllMoves(state, true, boardEvaluator);
+
+            while (!timesUp() && allPossibleMoves.Count > 0)
             {
-				if (bestMoves != null)
-					selectedMove = bestMoves[selectedMoveIndex % bestMoves.Count];
+                if (bestMoves != null)
+                    selectedMove = bestMoves[selectedMoveIndex % bestMoves.Count];
 
                 // Reverse Sort the moves so our best moves are at the beginning of the list to improve Alpha Beta Pruning
                 allPossibleMoves.Sort((x, y) => y.ValueOfMove.CompareTo(x.ValueOfMove));
 
-    			bestMoves = new List<ChessMove>();
-				bestMoves.Add(allPossibleMoves[0]);
+                bestMoves = new List<ChessMove>();
+                bestMoves.Add(allPossibleMoves[0]);
 
                 int i = 0;
                 int alpha = int.MinValue;
@@ -67,21 +69,22 @@ namespace StudentAI
                 {
                     ChessMove move = allPossibleMoves[i];
 
-                    move.ValueOfMove = MinValue(MoveGenerator.GetStateAfterMove(state, move), move, depth - 1, alpha, beta);
+                    move.ValueOfMove = MinValue(moveGenerator.GetStateAfterMove(state, move), move, depth - 1, alpha, beta);
 
                     // Keep an ordered list of best moves -- this produces better results than simply sorting the final list since
                     // It keeps the relative order the same as the original heuristic pass
-					int pos = 0;
-					while (pos < bestMoves.Count && bestMoves[pos].ValueOfMove >= move.ValueOfMove)
-						pos++;
+                    int pos = 0;
+                    while (pos < bestMoves.Count && bestMoves[pos].ValueOfMove >= move.ValueOfMove)
+                        pos++;
 
-					bestMoves.Insert(pos, move);
+                    bestMoves.Insert(pos, move);
 
                     alpha = Math.Max(alpha, move.ValueOfMove);
                 }
 
-				log(string.Format("(Depth: {5}) Processed {0} move(s) out of {1}. Move: {2} (index: {3}, value: {4})", i, allPossibleMoves.Count, SimpleState.GetGameMove(bestMoves[0], playerColor).ToString(), selectedMoveIndex, bestMoves[0].ValueOfMove, depth));
-
+#if DEBUG
+                log(string.Format("(Depth: {5}) Processed {0} move(s) out of {1}. Move: {2} (index: {3}, value: {4})", i, allPossibleMoves.Count, SimpleState.GetGameMove(bestMoves[0], playerColor).ToString(), selectedMoveIndex, bestMoves[0].ValueOfMove, depth));
+#endif
                 depth++;
             }
 
@@ -102,7 +105,7 @@ namespace StudentAI
 
             // If we didn't find any moves, then return stalemate
             ChessMove gameMove = SimpleState.GetGameMove(selectedMove, playerColor) ?? new ChessMove(null, null) { Flag = ChessFlag.Stalemate };
-            
+
             log(string.Format("Chosen Move: {0} - Value: {1}", gameMove, gameMove.ValueOfMove));
             log("Max Depth: " + (depth - 1));
 
@@ -115,11 +118,11 @@ namespace StudentAI
             if (depth < 0 || move.Flag == ChessFlag.Checkmate)
                 return -move.ValueOfMove;
 
-            state = MoveGenerator.GetEnemyState(state);
+            state = moveGenerator.GetEnemyState(state);
 
             int value = int.MinValue;
 
-            List<ChessMove> allPossibleMoves = MoveGenerator.GetAllMoves(state, true, boardEvaluator);
+            List<ChessMove> allPossibleMoves = moveGenerator.GetAllMoves(state, true, boardEvaluator);
 
             // Sort the moves to get the most out of Alpha Beta Pruning
             allPossibleMoves.Sort((x, y) => y.ValueOfMove.CompareTo(x.ValueOfMove));
@@ -128,7 +131,7 @@ namespace StudentAI
             {
                 ChessMove currentMove = allPossibleMoves[i];
 
-                value = Math.Max(value, MinValue(MoveGenerator.GetStateAfterMove(state, currentMove), currentMove, depth - 1, alpha, beta));
+                value = Math.Max(value, MinValue(moveGenerator.GetStateAfterMove(state, currentMove), currentMove, depth - 1, alpha, beta));
 
                 if (value >= beta)
                     return value;
@@ -144,11 +147,11 @@ namespace StudentAI
             if (depth < 0 || move.Flag == ChessFlag.Checkmate)
                 return move.ValueOfMove;
 
-            state = MoveGenerator.GetEnemyState(state);
+            state = moveGenerator.GetEnemyState(state);
 
             int value = int.MaxValue;
 
-            List<ChessMove> allPossibleMoves = MoveGenerator.GetAllMoves(state, true, boardEvaluator);
+            List<ChessMove> allPossibleMoves = moveGenerator.GetAllMoves(state, true, boardEvaluator);
 
             // Sort the moves to get the most out of Alpha Beta Pruning
             allPossibleMoves.Sort((x, y) => y.ValueOfMove.CompareTo(x.ValueOfMove));
@@ -157,7 +160,7 @@ namespace StudentAI
             {
                 ChessMove currentMove = allPossibleMoves[i];
 
-                value = Math.Min(value, MaxValue(MoveGenerator.GetStateAfterMove(state, currentMove), currentMove, depth - 1, alpha, beta));
+                value = Math.Min(value, MaxValue(moveGenerator.GetStateAfterMove(state, currentMove), currentMove, depth - 1, alpha, beta));
 
                 if (value <= alpha)
                     return value;

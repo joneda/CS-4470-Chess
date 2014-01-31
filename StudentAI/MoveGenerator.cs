@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UvsChess;
 
-namespace StudentAI
+namespace EnPassantAI
 {
     /// <summary>
     /// Generates the list of all possible moves that can be made by the friendly pieces on a ChessState
@@ -13,7 +13,12 @@ namespace StudentAI
         /// <summary>
         /// This must be overridden to get log messages. Default is to follow the null-object pattern (kind of)
         /// </summary>
-        public static Action<string> Log = (message) => { };
+        private Action<string> log = (message) => { };
+
+        public MoveGenerator(Action<string> logMethod)
+        {
+            log = logMethod;
+        }
 
         /// <summary>
         /// Static method that will return a list of all the possible moves.
@@ -21,7 +26,7 @@ namespace StudentAI
         /// <param name="state">The current board state in the ChessState (friend/foe) board style</param>
         /// <param name="calculateCheckMate">Checkmate will only be calculated if this is true</param>
         /// <param name="boardEvaluator">The heuristc method to use in determining move value</param>
-        public static List<ChessMove> GetAllMoves(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator)
+        public List<ChessMove> GetAllMoves(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator)
         {
             List<ChessMove> AllPossibleMoves = new List<ChessMove>();
             int Columns = state.GetLength(0);
@@ -36,7 +41,7 @@ namespace StudentAI
         /// <param name="state">The state before making the move</param>
         /// <param name="move">The move to make</param>
         /// <returns>The state after the move</returns>
-        public static int[,] GetStateAfterMove(int[,] state, ChessMove move)
+        public int[,] GetStateAfterMove(int[,] state, ChessMove move)
         {
             int[,] newState = (int[,])state.Clone();
 
@@ -55,7 +60,7 @@ namespace StudentAI
         /// </summary>
         /// <param name="state">The state to flip</param>
         /// <returns>The enemy version of the state</returns>
-        public static int[,] GetEnemyState(int[,] state)
+        public int[,] GetEnemyState(int[,] state)
         {
             int Columns = state.GetLength(0);
             int Rows = state.GetLength(1);
@@ -79,7 +84,7 @@ namespace StudentAI
         /// <param name="stateToCheck">The current state of the board</param>
         /// <param name="pieceLocation">The location of the piece to check check if it is in danger</param>
         /// <returns>True if the piece can be killed by any enemy pieces, otherwise false</returns>
-        public static bool InDanger(int[,] stateToCheck, ChessLocation pieceLocation)
+        public bool InDanger(int[,] stateToCheck, ChessLocation pieceLocation)
         {
             int columnCount = stateToCheck.GetLength(0);
             int rowCount = stateToCheck.GetLength(1);
@@ -260,7 +265,7 @@ namespace StudentAI
             return false;
         }
 
-        private static void DetermineMoves(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
+        private void DetermineMoves(int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
         {
             for (int row = 0; row < Rows; row++)
             {
@@ -272,7 +277,7 @@ namespace StudentAI
             }
         }        
 
-        private static void AddMove(ChessMove move, int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
+        private void AddMove(ChessMove move, int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
         {
             int[,] stateAfterMove = GetStateAfterMove(state, move);
 
@@ -289,7 +294,7 @@ namespace StudentAI
                     int[,] enemyStateAfterMove = GetEnemyState(stateAfterMove);
 
                     // if there are no possible moves for the enemy, they are in checkmate
-                    if (MoveGenerator.GetAllMoves(enemyStateAfterMove, false, null).Count < 1)
+                    if (GetAllMoves(enemyStateAfterMove, false, null).Count < 1)
                         move.Flag = ChessFlag.Checkmate;
                 }
             }
@@ -300,7 +305,7 @@ namespace StudentAI
             AllPossibleMoves.Add(move);
         }
 
-        private static void GenerateMoves(int statePiece, int column, int row, int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
+        private void GenerateMoves(int statePiece, int column, int row, int[,] state, bool calculateCheckMate, Func<int[,], ChessMove, int> boardEvaluator, int Columns, int Rows, List<ChessMove> AllPossibleMoves)
         {
             switch (statePiece)
             {
@@ -661,7 +666,7 @@ namespace StudentAI
             }
         }
 
-        private static ChessLocation LocatePiece(int[,] stateToCheck, int piece, int Columns, int Rows)
+        private ChessLocation LocatePiece(int[,] stateToCheck, int piece, int Columns, int Rows)
         {
             for (int row = 0; row < Rows; row++)
             {
@@ -675,7 +680,7 @@ namespace StudentAI
             return null;
         }
 
-        private static bool InCheck(int[,] stateToCheck, bool enemy, int Columns, int Rows)
+        private bool InCheck(int[,] stateToCheck, bool enemy, int Columns, int Rows)
         {
             int kingToCheck = enemy ? -SimpleState.King : SimpleState.King;
 
@@ -683,7 +688,7 @@ namespace StudentAI
 
             if (kingLocation == null)
             {
-                Log("kingLocation is null");
+                log("kingLocation is null");
                 return true;
             }
 

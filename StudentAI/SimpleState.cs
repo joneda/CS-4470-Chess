@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UvsChess;
 
-namespace StudentAI
+namespace EnPassantAI
 {
     /// <summary>
     /// Simplified values for chess peices for use in ChessState

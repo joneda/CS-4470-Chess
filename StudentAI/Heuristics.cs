@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using UvsChess;
 
-namespace StudentAI
+namespace EnPassantAI
 {
     /// <summary>
     /// This class contains various Heuristic methods that can be used interchangeably with the GreedySolver
     /// </summary>
-    internal static class Heuristics
+    internal class Heuristics
     {
+        private MoveGenerator moveGenerator;
+
         private static readonly Dictionary<int, int> pieceValue = new Dictionary<int, int>
         {
             {-SimpleState.King, -10},
@@ -26,6 +28,11 @@ namespace StudentAI
             {SimpleState.King, 10},
         };
 
+        public Heuristics(MoveGenerator moveGenerator)
+        {
+            this.moveGenerator = moveGenerator;
+        }
+
         /// <summary>
         /// This is our general heuristic that is used during most game-play.
         /// 
@@ -36,10 +43,10 @@ namespace StudentAI
         /// <param name="state">The state to generate the heursitic for</param>
         /// <param name="move">The state move that was made to create this new state</param>
         /// <returns>Numeric value indicating a value for this state</returns>
-        public static int MoreAdvancedAddition(int[,] state, ChessMove move)
+        public int MoreAdvancedAddition(int[,] state, ChessMove move)
         {
             int result = 0;
-            bool danger = MoveGenerator.InDanger(state, move.To);
+            bool danger = moveGenerator.InDanger(state, move.To);
 
             if (move.Flag == ChessFlag.Check)
                 result += 1;
@@ -48,7 +55,7 @@ namespace StudentAI
             {
                 result += 5000;
             }
-            else if (!danger && Heuristics.shouldAttemptToQueenPawn(state, move.To))
+            else if (!danger && shouldAttemptToQueenPawn(state, move.To))
             {
                 result += 1;
             }
@@ -60,7 +67,7 @@ namespace StudentAI
                     int piece = state[x, y];
 
                     // Only add my piece if it's not in danger
-                    if (piece <= 0 || !MoveGenerator.InDanger(state, new ChessLocation(x, y)))
+                    if (piece <= 0 || !moveGenerator.InDanger(state, new ChessLocation(x, y)))
                         result += pieceValue[piece];
                 }
             }
@@ -74,7 +81,7 @@ namespace StudentAI
         /// <param name="board">The board to evaluate</param>
         /// <param name="myColor">The player's color</param>
         /// <returns>True if we're in an end-game state otherwise false</returns>
-        public static bool IsEndgame(ChessBoard board, ChessColor myColor)
+        public bool IsEndgame(ChessBoard board, ChessColor myColor)
         {
             int numberOfPieces = 0;
 
@@ -104,7 +111,7 @@ namespace StudentAI
         /// <param name="state">The state to generate the heursitic for</param>
         /// <param name="move">The state move that was made to create this new state</param>
         /// <returns>Numeric value indicating a value for this state</returns>
-        public static int Endgame(int[,] state, ChessMove move)
+        public int Endgame(int[,] state, ChessMove move)
         {
 
             int result = 0;
@@ -158,7 +165,7 @@ namespace StudentAI
                 }
                 else
                 {
-                    if (MoveGenerator.InDanger(state, new ChessLocation(rCol, rRow)))
+                    if (moveGenerator.InDanger(state, new ChessLocation(rCol, rRow)))
                         result = int.MinValue + 1;
                     // If our king is nearing their king and our Rook/Queen is not by our king, so move it closer to our king
                     else if (Math.Abs(ekCol - kCol) == 2 || Math.Abs(ekRow - kRow) == 2 && ((Math.Abs(kCol - rCol) == 1) || (Math.Abs(kRow - rRow) == 1)))
@@ -382,7 +389,7 @@ namespace StudentAI
             return result;
         }
 
-        private static bool shouldAttemptToQueenPawn(int[,] state, ChessLocation pawnLocation)
+        private bool shouldAttemptToQueenPawn(int[,] state, ChessLocation pawnLocation)
         {
             if (state[pawnLocation.X, pawnLocation.Y] == SimpleState.Pawn)
                 return false;
